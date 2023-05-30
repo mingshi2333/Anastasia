@@ -40,3 +40,9 @@ build/linux/x86_64/release/vulkantest
 .xmake/linux/x86_64/cache/project
 .xmake/linux/x86_64/cache/repository
 .xmake/linux/x86_64/cache/toolchain
+build/.build_cache/82/82f69e733e55a5e860b73dcc20ce3c3a
+build/.build_cache/ec/ec4a0855217fedacc2716bca08c16bc9
+.gitignore
+.gitignore
+build/.build_cache/58/5821ba77fc095bbc210e486c37b6c440
+build/.build_cache/d0/d07abce5146d9297d4016077323b7b78

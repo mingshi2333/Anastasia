@@ -63,8 +63,31 @@ private:
     }
     return false; // 未找到匹配的扩展名称，返回 false
   }
+  bool checkValidationLayerSupport() {
+    uint32_t layerCount;
+    vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+    std::vector<VkLayerProperties> availableLayers(layerCount);
+    vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+    for (auto layerName : validationLayers) {
+      bool layerFound = false;
+      for (auto layerProperties : availableLayers) {
+        if (strcmp(layerName, layerProperties.layerName) == 0) {
+          layerFound = true;
+          break;
+        }
+      }
+      if (!layerFound) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   void createInstance() {
+    if (enableValidationLayers && !checkValidationLayerSupport()) {
+      throw std::runtime_error(
+          "validation layers requested,but not available!");
+    }
     VkApplicationInfo appInfo{};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     appInfo.pApplicationName = "Hello Triangle";
@@ -100,9 +123,16 @@ private:
       }
     }
 
-    createInfo.enabledExtensionCount = glfwExtensionCount;
-    createInfo.ppEnabledExtensionNames = glfwExtensions;
-    createInfo.enabledLayerCount = 0;
+    // createInfo.enabledExtensionCount = glfwExtensionCount;
+    // createInfo.ppEnabledExtensionNames = glfwExtensions;
+    // createInfo.enabledLayerCount = 0;
+    if (enableValidationLayers) {
+      createInfo.enabledLayerCount =
+          static_cast<uint32_t>(validationLayers.size());
+      createInfo.ppEnabledLayerNames = validationLayers.data();
+    } else {
+      createInfo.enabledLayerCount = 0;
+    }
     VkResult result = vkCreateInstance(&createInfo, nullptr, &instance);
     if (result != VK_SUCCESS) {
       throw std::runtime_error("failed to create instance!");
