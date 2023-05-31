@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <cstddef>
-#include <vulkan/vulkan_core.h>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
@@ -23,7 +22,7 @@ const bool enableValidationLayers = false;
 const bool enableValidationLayers = true;
 #endif
 class HelloTriangleApplication {
-public:
+ public:
   void run() {
     initWindow();
     initVulkan();
@@ -31,7 +30,7 @@ public:
     cleanup();
   }
 
-private:
+ private:
   GLFWwindow *window;
   void initWindow() {
     // glfw start
@@ -53,15 +52,15 @@ private:
     glfwTerminate();
   }
 
-  bool
-  checkExtensionProperties(const std::vector<VkExtensionProperties> &extensions,
-                           const char *extension) {
+  bool checkExtensionProperties(
+      const std::vector<VkExtensionProperties> &extensions,
+      const char *extension) {
     for (const auto &ext : extensions) {
       if (ext.extensionName == extension) {
-        return true; // 找到匹配的扩展名称，返回 true
+        return true;  // 找到匹配的扩展名称，返回 true
       }
     }
-    return false; // 未找到匹配的扩展名称，返回 false
+    return false;  // 未找到匹配的扩展名称，返回 false
   }
   bool checkValidationLayerSupport() {
     uint32_t layerCount;
@@ -82,6 +81,29 @@ private:
     }
     return true;
   }
+  std::vector<const char *> getRequiredExtensions() {
+    uint32_t glfwExtensionCount = 0;
+    const char **glfwExtensions;
+    glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+
+    std::vector<const char *> extensions(glfwExtensions,
+                                         glfwExtensions + glfwExtensionCount);
+
+    if (enableValidationLayers) {
+      extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    }
+
+    return extensions;
+  }
+  static VKAPI_ATTR VkBool32 VKAPI_CALL
+  debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+                VkDebugUtilsMessageTypeFlagsEXT messageType,
+                const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
+                void *pUserData) {
+    std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+
+    return VK_FALSE;
+  }
 
   void createInstance() {
     if (enableValidationLayers && !checkValidationLayerSupport()) {
@@ -100,28 +122,32 @@ private:
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     createInfo.pApplicationInfo = &appInfo;
 
+    auto extensions = getRequiredExtensions();
+    createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+    createInfo.ppEnabledExtensionNames = extensions.data();
+
     // extension count number
-    uint32_t glfwExtensionCount = 0;
-    uint32_t extensionCount = 0;
-    vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
-    std::vector<VkExtensionProperties> extensions(extensionCount);
-    vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount,
-                                           extensions.data());
+    // uint32_t glfwExtensionCount = 0;
+    // uint32_t extensionCount = 0;
+    // vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount,
+    // nullptr); std::vector<VkExtensionProperties> extensions(extensionCount);
+    // vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount,
+    //                                        extensions.data());
 
     // std::cout << "available extension:\n";
     // for (const auto &extension : extensions) {
     //   std::cout << '\t' << extension.extensionName << '\n';
     // }
     // need extension
-    const char **glfwExtensions;
-    glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-    for (int i = 0; i < glfwExtensionCount; i++) {
-      auto temp = glfwExtensions[i];
-      std::cout << "\t" << glfwExtensions[i] << std::endl;
-      if (checkExtensionProperties(extensions, temp)) {
-        throw std::runtime_error("failed to check extension!");
-      }
-    }
+    // const char **glfwExtensions;
+    // glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+    // for (int i = 0; i < glfwExtensionCount; i++) {
+    //   auto temp = glfwExtensions[i];
+    //   std::cout << "\t" << glfwExtensions[i] << std::endl;
+    //   if (checkExtensionProperties(extensions, temp)) {
+    //     throw std::runtime_error("failed to check extension!");
+    //   }
+    // }
 
     // createInfo.enabledExtensionCount = glfwExtensionCount;
     // createInfo.ppEnabledExtensionNames = glfwExtensions;
@@ -133,13 +159,15 @@ private:
     } else {
       createInfo.enabledLayerCount = 0;
     }
+    createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+
     VkResult result = vkCreateInstance(&createInfo, nullptr, &instance);
     if (result != VK_SUCCESS) {
       throw std::runtime_error("failed to create instance!");
     }
   }
 
-private:
+ private:
   VkInstance instance;
 };
 
