@@ -1,0 +1,6 @@
+[
+{
+  "directory": "/home/mingshi2333/project/vulkantest",
+  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-m64", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-O3", "-std=c++17", "-I", "/usr/include/python3.10", "-I", "/home/mingshi2333/.xmake/packages/g/glm/0.9.9+8/274f33e70c12413283cc256b6f0574e0/include", "-DNDEBUG", "-o", "build/.objs/vulkantest/linux/x86_64/release/src/main.cpp.o", "src/main.cpp"],
+  "file": "src/main.cpp"
+}]
