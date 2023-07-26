@@ -575,6 +575,10 @@ private:
         pipelineLayoutInfo.pSetLayouts = nullptr;         // Optional
         pipelineLayoutInfo.pushConstantRangeCount = 0;    // Optional
         pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
+        if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to create pipeline layout!");
+        }
 
         VkGraphicsPipelineCreateInfo pipelineInfo{};
         pipelineInfo.sType =
@@ -599,11 +603,6 @@ private:
         if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS)
         {
             throw std::runtime_error("failed to create graphics pipeline!");
-        }
-
-        if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
-        {
-            throw std::runtime_error("failed to create pipeline layout!");
         }
 
         vkDestroyShaderModule(device, fragShaderModule, nullptr);
