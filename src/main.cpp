@@ -331,7 +331,7 @@ private:
         createGraphicsPipeline();
         createFramebuffers();
         createCommandPool();
-        createCommandBuffer();
+        createCommandBuffers();
         createSyncObjects();
     }
     void createSwapChain()
@@ -586,7 +586,7 @@ private:
             throw std::runtime_error("failed to create command pool!");
         }
     }
-    void createCommandBuffer()
+    void createCommandBuffers()
     {
         commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
         VkCommandBufferAllocateInfo allocInfo{};
@@ -716,11 +716,21 @@ private:
         VkFenceCreateInfo fenceInfo{};
         fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
         fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-        if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, imageAvailableSemaphores.data()) != VK_SUCCESS
-            || vkCreateSemaphore(device, &semaphoreInfo, nullptr, renderFinishedSemaphores.data()) != VK_SUCCESS
-            || vkCreateFence(device, &fenceInfo, nullptr, inFlightFences.data()) != VK_SUCCESS)
+        // for (auto semaphore : imageAvailableSemaphores)
+        // {
+        //     if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &semaphore) != VK_SUCCESS)
+        //     {
+        //         throw std::runtime_error("failed to create semaphores!");
+        //     }
+        // }
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
         {
-            throw std::runtime_error("failed to create semaphores!");
+            if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS
+                || vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS
+                || vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS)
+            {
+                throw std::runtime_error("failed to create semaphores!");
+            }
         }
     }
 
