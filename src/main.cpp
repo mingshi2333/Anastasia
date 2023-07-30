@@ -965,6 +965,23 @@ private:
         }
     }
 
+    // record swapchain
+    void recreateSwapChain()
+    {
+        vkDeviceWaitIdle(device);
+
+        cleanupSwapChain();
+
+        createSwapChain();
+        createImageViews();
+        createRenderPass();
+        createGraphicsPipeline();
+        createFramebuffers();
+        createCommandBuffers();
+    }
+    void cleanupSwapChain()
+    {}
+
 private:
     GLFWwindow* window;
     VkInstance instance;
