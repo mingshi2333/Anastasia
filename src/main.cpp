@@ -979,6 +979,7 @@ private:
             glfwGetFramebufferSize(window, &width, &height);
             glfwWaitEvents();
         }
+        // to sure that old device not have any framebuffer
         vkDeviceWaitIdle(device);
 
         cleanupSwapChain();
