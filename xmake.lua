@@ -2,7 +2,7 @@ add_rules("mode.debug", "mode.release")
 -- add_rules("utils.install.pkgconfig_importfiles")
 -- add_rules("utils.install.cmake_importfiles")
 set_languages("c++20")
-add_toolchains("icc")
+add_toolchains("clang")
 add_requires("glfw", "glm","vulkan")
 
 
