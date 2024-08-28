@@ -1,3 +1,4 @@
+#include <cstdio>
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
 #include <glm/glm.hpp>
@@ -25,6 +26,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include "helpfun.hpp"
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
 
@@ -488,8 +490,10 @@ private:
     }
     void createGraphicsPipeline()
     {
-        auto vertShaderCode = readFile("shader/vert.spv");
-        auto fragShaderCode = readFile("shader/frag.spv");
+        std::string baseDir = helpfunc::getExecutablePath();
+
+        auto vertShaderCode = helpfunc::readFile(baseDir + "/../shader/vert.spv");
+        auto fragShaderCode = helpfunc::readFile(baseDir + "/../shader/frag.spv");
         VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
         VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
         // create shader stage
