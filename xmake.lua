@@ -11,6 +11,8 @@ target("vulkantest")
     --set_targetdir("$(projectdir)")
     add_packages("glfw", "glm","vulkan")
     add_ldflags("-L/usr/local/lib", "-lpthread", {force = true})
+
+    
     if is_mode("release") then 
         add_defines("NDEBUG")
     end
