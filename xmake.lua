@@ -16,3 +16,17 @@ target("vulkantest")
     if is_mode("release") then 
         add_defines("NDEBUG")
     end
+    
+    after_build(function(target)
+        try{
+            function ()
+                os.cd("$(projectdir)/shader")
+                os.exec("bash compile.sh")
+            end,
+            catch{
+                function (errors)
+                    print("error: " .. errors)
+                end
+            }
+        }
+    end)
