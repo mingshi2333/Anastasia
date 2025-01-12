@@ -1,4 +1,5 @@
 build/*
+.idea/*
 .xmake/*
 .cache/*
 .vscode/*
