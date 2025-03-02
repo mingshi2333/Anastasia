@@ -44,8 +44,8 @@ const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
 
 std::string baseDirDD = helpfunc::getExecutablePath();
-const std::string MODEL_PATH = "/../assets/viking_room.obj";
-const std::string TEXTURE_PATH = "/textures/image.png";
+const std::string MODEL_PATH = "../assets/viking_room.obj";
+const std::string TEXTURE_PATH = "../assets/viking_room.png";
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
