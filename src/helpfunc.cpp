@@ -1,4 +1,4 @@
-#include "helpfun.hpp"
+#include "helpfunc.h"
 std::string helpfunc::getExecutablePath()
 {
     char result[PATH_MAX];

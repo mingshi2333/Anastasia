@@ -32,7 +32,7 @@
 #include <string>
 #include <vector>
 #include <hash_map>
-#include "helpfun.hpp"
+#include "helpfunc.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -43,10 +43,11 @@
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
 
-const std::string MODEL_PATH = "../assets/viking_room.obj";
-const std::string TEXTURE_PATH = "../assets/viking_room.png";
+std::string baseDirDD = helpfunc::getExecutablePath();
+const std::string MODEL_PATH = "/../assets/viking_room.obj";
+const std::string TEXTURE_PATH = "/textures/image.png";
 
-const int MAX_FRAMES_IN_FLIGHT = 3;
+const int MAX_FRAMES_IN_FLIGHT = 2;
 
 const std::vector<const char*> validationLayers = {"VK_LAYER_KHRONOS_validation"};
 
