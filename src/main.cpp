@@ -596,16 +596,19 @@ private:
         rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
         rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 
-        VkPipelineDepthStencilStateCreateInfo depthStencil{.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
-                                                           .depthTestEnable = VK_TRUE,
-                                                           .depthWriteEnable = VK_TRUE,
-                                                           .depthCompareOp = VK_COMPARE_OP_LESS,
-                                                           .depthBoundsTestEnable = VK_FALSE,
-                                                           .minDepthBounds = 0.0f,
-                                                           .maxDepthBounds = 1.0f,
-                                                           .stencilTestEnable = VK_FALSE,
-                                                           .front = {},
-                                                           .back = {}};
+        VkPipelineDepthStencilStateCreateInfo depthStencil{};
+        depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+        depthStencil.pNext = nullptr;
+        depthStencil.flags = 0;
+        depthStencil.depthTestEnable = VK_TRUE;
+        depthStencil.depthWriteEnable = VK_TRUE;
+        depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
+        depthStencil.depthBoundsTestEnable = VK_FALSE;
+        depthStencil.minDepthBounds = 0.0f;
+        depthStencil.maxDepthBounds = 1.0f;
+        depthStencil.stencilTestEnable = VK_FALSE;
+        depthStencil.front = {}; // or appropriate initialization
+        depthStencil.back = {};
 
         // create multisampling
         VkPipelineMultisampleStateCreateInfo multisampling{};
@@ -779,14 +782,19 @@ private:
     void generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels)
     {
         VkCommandBuffer commandBuffers = beginSingleTimeCommands();
-        VkImageMemoryBarrier barrier{.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-                                     .image = image,
-                                     .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                                     .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                                     .subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                                     .subresourceRange.baseArrayLayer = 0,
-                                     .subresourceRange.layerCount = 1,
-                                     .subresourceRange.levelCount = 1};
+        VkImageMemoryBarrier barrier = {
+            VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER, // sType
+            nullptr,                                // pNext
+            0,                                      // srcAccessMask
+            0,                                      // dstAccessMask
+            VK_IMAGE_LAYOUT_UNDEFINED,              // oldLayout
+            VK_IMAGE_LAYOUT_UNDEFINED,              // newLayout
+            VK_QUEUE_FAMILY_IGNORED,                // srcQueueFamilyIndex
+            VK_QUEUE_FAMILY_IGNORED,                // dstQueueFamilyIndex
+            image,                                  // image
+            {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}
+            // subresourceRange: aspectMask, baseMipLevel, levelCount, baseArrayLayer, layerCount
+        };
 
         VkFormatProperties formatProperties;
         vkGetPhysicalDeviceFormatProperties(physicalDevice, imageFormat, &formatProperties);
@@ -858,13 +866,14 @@ private:
     void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
     {
         VkCommandBuffer commandBuffer = beginSingleTimeCommands();
-        VkBufferImageCopy region{.bufferOffset = 0,
-                                 .bufferRowLength = 0,
-                                 .bufferImageHeight = 0,
-                                 .imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                                 .imageSubresource.mipLevel = 0,
-                                 .imageSubresource.baseArrayLayer = 0,
-                                 .imageSubresource.layerCount = 1};
+        VkBufferImageCopy region = {
+            0,                                    // bufferOffset
+            0,                                    // bufferRowLength
+            0,                                    // bufferImageHeight
+            {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1}, // imageSubresource: aspectMask, mipLevel, baseArrayLayer, layerCount
+            {0, 0, 0},                            // imageOffset
+            {width, height, 1}                    // imageExtent
+        };
 
         region.imageOffset = {0, 0, 0};
         region.imageExtent = {width, height, 1};
@@ -948,8 +957,9 @@ private:
     VkCommandBuffer beginSingleTimeCommands()
     {
         VkCommandBufferAllocateInfo allocInfo{.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-                                              .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+                                              .pNext = nullptr,
                                               .commandPool = commandPool,
+                                              .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
                                               .commandBufferCount = 1};
 
         VkCommandBuffer commandBuffer;
@@ -974,15 +984,23 @@ private:
 
     VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels)
     {
-        VkImageViewCreateInfo viewInfo{.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-                                       .image = image,
-                                       .viewType = VK_IMAGE_VIEW_TYPE_2D,
-                                       .format = format,
-                                       .subresourceRange.aspectMask = aspectFlags,
-                                       .subresourceRange.baseMipLevel = 0,
-                                       .subresourceRange.levelCount = mipLevels,
-                                       .subresourceRange.baseArrayLayer = 0,
-                                       .subresourceRange.layerCount = 1};
+        VkImageViewCreateInfo viewInfo{};
+        viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        viewInfo.pNext = nullptr;
+        viewInfo.flags = 0;
+        viewInfo.image = image;
+        viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        viewInfo.format = format;
+        // 默认组件映射，不改变颜色通道顺序
+        viewInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+        viewInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+        viewInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+        viewInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+        viewInfo.subresourceRange.aspectMask = aspectFlags;
+        viewInfo.subresourceRange.baseMipLevel = 0;
+        viewInfo.subresourceRange.levelCount = mipLevels;
+        viewInfo.subresourceRange.baseArrayLayer = 0;
+        viewInfo.subresourceRange.layerCount = 1;
         VkImageView imageView;
         if (vkCreateImageView(device, &viewInfo, nullptr, &imageView) != VK_SUCCESS)
         {
@@ -1000,22 +1018,25 @@ private:
     {
         VkPhysicalDeviceProperties properties{};
         vkGetPhysicalDeviceProperties(physicalDevice, &properties);
-        VkSamplerCreateInfo samplerInfo{.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-                                        .magFilter = VK_FILTER_LINEAR,
-                                        .minFilter = VK_FILTER_LINEAR,
-                                        .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-                                        .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-                                        .anisotropyEnable = VK_TRUE,
-                                        .maxAnisotropy = properties.limits.maxSamplerAnisotropy,
-                                        .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
-                                        .unnormalizedCoordinates = VK_FALSE,
-                                        .compareEnable = VK_FALSE,
-                                        .compareOp = VK_COMPARE_OP_ALWAYS,
-                                        .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
-                                        // TODO: ADD ui to change
-                                        .minLod = 0,
-                                        .maxLod = static_cast<float>(mipLevels),
-                                        .mipLodBias = 0.0f};
+        VkSamplerCreateInfo samplerInfo{};
+        samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+        samplerInfo.pNext = nullptr;
+        samplerInfo.flags = 0;
+        samplerInfo.magFilter = VK_FILTER_LINEAR;
+        samplerInfo.minFilter = VK_FILTER_LINEAR;
+        samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.mipLodBias = 0.0f;
+        samplerInfo.anisotropyEnable = VK_TRUE;
+        samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
+        samplerInfo.compareEnable = VK_FALSE;
+        samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+        samplerInfo.minLod = 0.0f;
+        samplerInfo.maxLod = static_cast<float>(mipLevels);
+        samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+        samplerInfo.unnormalizedCoordinates = VK_FALSE;
         if (vkCreateSampler(device, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS)
         {
             throw std::runtime_error("failed to create texture sampler!");
@@ -1039,11 +1060,13 @@ private:
         uboLayoutBingding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
         uboLayoutBingding.pImmutableSamplers = nullptr; // Optional
 
-        VkDescriptorSetLayoutBinding samplerLayoutBinding{.binding = 1,
-                                                          .descriptorCount = 1,
-                                                          .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                                                          .pImmutableSamplers = nullptr,
-                                                          .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT};
+        VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+        samplerLayoutBinding.binding = 1;
+        samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        samplerLayoutBinding.descriptorCount = 1;
+        samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+        samplerLayoutBinding.pImmutableSamplers = nullptr;
+
         std::array<VkDescriptorSetLayoutBinding, 2> bingdings = {uboLayoutBingding, samplerLayoutBinding};
 
         VkDescriptorSetLayoutCreateInfo layoutInfo{.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
@@ -1502,7 +1525,7 @@ private:
             throw std::runtime_error("failed to acquire swap chain image!");
         } // get image not success or not match exactly
 
-        updateUniformBuffer(imageIndex); // update uniform buffer
+        updateUniformBuffer(currentFrame); // update uniform buffer
 
         // Only reset the fence if we are submitting work
         vkResetFences(device, 1, &inFlightFences[currentFrame]);
