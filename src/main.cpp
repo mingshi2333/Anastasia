@@ -13,7 +13,7 @@
 #include <glm/fwd.hpp>
 #include <limits>
 #include <sys/types.h>
-#include <vulkan/vulkan_core.h>
+#include <vulkan/vulkan.hpp>
 #include <fstream>
 #include <algorithm>
 #include <cstddef>
@@ -405,6 +405,8 @@ private:
         {
             throw std::runtime_error("failed to create logical device!");
         }
+
+        VULKAN_HPP_DEFAULT_DISPATCHER.init(device);
         vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
         vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
     }
@@ -1738,6 +1740,7 @@ private:
         {
             throw std::runtime_error("failed to create instance!");
         }
+        VULKAN_HPP_DEFAULT_DISPATCHER.init(vk::Instance(instance));
     }
 
     // record swapchain
