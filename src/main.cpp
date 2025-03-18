@@ -406,7 +406,6 @@ private:
             throw std::runtime_error("failed to create logical device!");
         }
 
-        VULKAN_HPP_DEFAULT_DISPATCHER.init(device);
         vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
         vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
     }
@@ -1740,7 +1739,6 @@ private:
         {
             throw std::runtime_error("failed to create instance!");
         }
-        VULKAN_HPP_DEFAULT_DISPATCHER.init(vk::Instance(instance));
     }
 
     // record swapchain

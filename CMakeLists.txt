@@ -29,7 +29,7 @@ target_include_directories(Anastasia PRIVATE
 
 find_package(Threads REQUIRED)
 
-# find_package(Vulkan REQUIRED)
+find_package(Vulkan REQUIRED)
 
 # Link libraries
 target_link_libraries(Anastasia
@@ -37,7 +37,7 @@ target_link_libraries(Anastasia
     glfw
     Threads::Threads
     glm::glm
-    vulkan-registry
+    Vulkan::Vulkan
 )
 
 # Compile definitions
