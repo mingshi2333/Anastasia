@@ -5,13 +5,13 @@
 
 namespace ANA
 {
-class ANA_window
+class ANAwindow
 {
 public:
-    ANA_window(int width, int height, std::string windowName);
-    ~ANA_window();
-    ANA_window(const ANA_window&) = delete;
-    ANA_window& operator=(const ANA_window&) = delete;
+    ANAwindow(int width, int height, std::string windowName);
+    ~ANAwindow();
+    ANAwindow(const ANAwindow&) = delete;
+    ANAwindow& operator=(const ANAwindow&) = delete;
     void createWindowSurface(VkInstance instance, VkSurfaceKHR* surface);
     void cleanup();
     bool shouldClose()

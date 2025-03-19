@@ -47,7 +47,7 @@ target_compile_definitions(Anastasia PRIVATE
 
 add_custom_command(
     TARGET Anastasia POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_SOURCE_DIR}/shader sh compile.sh
+    COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_SOURCE_DIR}/shaders sh compile.sh
     COMMENT "Compiling shaders..."
     VERBATIM
 )

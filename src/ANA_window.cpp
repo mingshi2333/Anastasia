@@ -3,18 +3,18 @@
 namespace ANA
 {
 
-ANA_window::ANA_window(int w, int h, std::string name) : width(w), height(h), windowName(name)
+ANAwindow::ANAwindow(int w, int h, std::string name) : width(w), height(h), windowName(name)
 {
     initWindow();
 }
 
-ANA_window::~ANA_window()
+ANAwindow::~ANAwindow()
 {
     glfwDestroyWindow(window);
     glfwTerminate();
 }
 
-void ANA_window::initWindow()
+void ANAwindow::initWindow()
 {
     // glfw start
     glfwInit();
