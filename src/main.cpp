@@ -1908,18 +1908,18 @@ private:
     uint32_t currentFrame = 0;
 };
 
-int main()
-{
-    HelloTriangleApplication app;
-    try
-    {
-        app.run();
-    }
-    catch (const std::exception& e)
-    {
-        std::cerr << e.what() << std::endl;
-        return EXIT_FAILURE;
-    }
+// int main()
+// {
+//     HelloTriangleApplication app;
+//     try
+//     {
+//         app.run();
+//     }
+//     catch (const std::exception& e)
+//     {
+//         std::cerr << e.what() << std::endl;
+//         return EXIT_FAILURE;
+//     }
 
-    return EXIT_SUCCESS;
-}
+//     return EXIT_SUCCESS;
+// }
