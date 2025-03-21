@@ -2,37 +2,37 @@ include(CPM)
 set(VK_SDK_VERSION 1.4.304)
 
 set(ANA_PATCH_DIR ${CMAKE_SOURCE_DIR}/patches)
-CPMAddPackage(
-    NAME Format.cmake
-    VERSION 1.8.3
-    GITHUB_REPOSITORY TheLartians/Format.cmake
-    OPTIONS
 
-    # set to yes skip cmake formatting
-    "FORMAT_SKIP_CMAKE YES"
+# CPMAddPackage(
+# NAME Format.cmake
+# VERSION 1.8.3
+# GITHUB_REPOSITORY TheLartians/Format.cmake
+# OPTIONS
 
-    # set to yes skip clang formatting
-    "FORMAT_SKIP_CLANG NO"
+# # set to yes skip cmake formatting
+# "FORMAT_SKIP_CMAKE YES"
 
-    # path to exclude (optional, supports regular expressions)
-    "CMAKE_FORMAT_EXCLUDE cmake/CPM.cmake"
-)
+# # set to yes skip clang formatting
+# "FORMAT_SKIP_CLANG NO"
 
-CPMAddPackage(
-    NAME tinygltf
-    GITHUB_REPOSITORY syoyo/tinygltf
-    VERSION 2.8.18
-    PATCHES ${ANA_PATCH_DIR}/tinygltf.patch
-)
+# # path to exclude (optional, supports regular expressions)
+# "CMAKE_FORMAT_EXCLUDE cmake/CPM.cmake"
+# )
 
-if(APH_ENABLE_TRACING)
-    CPMAddPackage(
-        NAME tracy
-        GITHUB_REPOSITORY wolfpld/tracy
-        VERSION 0.11.1
-    )
-endif()
+# CPMAddPackage(
+# NAME tinygltf
+# GITHUB_REPOSITORY syoyo/tinygltf
+# VERSION 2.8.18
+# PATCHES ${ANA_PATCH_DIR}/tinygltf.patch
+# )
 
+# if(APH_ENABLE_TRACING)
+# CPMAddPackage(
+# NAME tracy
+# GITHUB_REPOSITORY wolfpld/tracy
+# VERSION 0.11.1
+# )
+# endif()
 CPMAddPackage(
     NAME glm
     GITHUB_REPOSITORY g-truc/glm
@@ -54,17 +54,17 @@ target_compile_definitions(vulkan-registry INTERFACE
     VULKAN_HPP_NO_EXCEPTIONS
     VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1
 )
-CPMAddPackage(
-    NAME GLFW
-    GITHUB_REPOSITORY glfw/glfw
-    GIT_TAG 3.3.9
-    OPTIONS
-    "GLFW_BUILD_TESTS OFF"
-    "GLFW_BUILD_EXAMPLES OFF"
-    "GLFW_BULID_DOCS OFF"
-    "GLFW_INSTALL OFF"
-)
 
+# CPMAddPackage(
+# NAME GLFW
+# GITHUB_REPOSITORY glfw/glfw
+# GIT_TAG 3.3.9
+# OPTIONS
+# "GLFW_BUILD_TESTS OFF"
+# "GLFW_BUILD_EXAMPLES OFF"
+# "GLFW_BULID_DOCS OFF"
+# "GLFW_INSTALL OFF"
+# )
 CPMAddPackage(
     NAME imgui
     VERSION 1.91.8

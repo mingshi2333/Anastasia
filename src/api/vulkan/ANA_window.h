@@ -3,7 +3,7 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
-namespace ANA
+namespace ana
 {
 class ANAwindow
 {
@@ -27,4 +27,4 @@ private:
     std::string windowName;
 };
 
-} // namespace ANA
+} // namespace ana

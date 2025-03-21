@@ -1,8 +1,8 @@
 #pragma once
 
-#include "ANA_window.h"
-#include "ANA_pipeline.h"
-namespace ANA
+#include "api/vulkan/ANA_window.h"
+#include "api/pipeline.h"
+namespace ana
 {
 class APP
 {
@@ -14,6 +14,6 @@ public:
 
 private:
     ANAwindow window{WIDTH, HEIGHT, "Vulkan"};
-    ANAPipeline pipeline{"../shaders/vert.spv", "../shaders/frag.spv"};
+    vk::ANAPipeline pipeline{"../shaders/vert.spv", "../shaders/frag.spv"};
 };
-} // namespace ANA
+} // namespace ana

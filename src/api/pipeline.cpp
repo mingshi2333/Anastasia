@@ -1,9 +1,9 @@
-#include "ANA_pipeline.h"
+#include "pipeline.h"
 #include <vector>
 #include <iostream>
 #include <fstream>
 
-namespace ANA
+namespace ana::vk
 {
 ANAPipeline::ANAPipeline(const std::string& vertFilepath, const std::string& fragFilepath)
 {
@@ -31,4 +31,4 @@ void ANAPipeline::createGraphicsPipeline(const std::string& vertFilepath, const 
     std::cout << "Fragment Shader size" << fragCode.size() << std::endl;
 }
 
-} // namespace ANA
+} // namespace ana::vk

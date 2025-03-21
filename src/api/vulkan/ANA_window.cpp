@@ -1,6 +1,6 @@
 #include "ANA_window.h"
 
-namespace ANA
+namespace ana
 {
 
 ANAwindow::ANAwindow(int w, int h, std::string name) : width(w), height(h), windowName(name)
@@ -23,4 +23,4 @@ void ANAwindow::initWindow()
 
     window = glfwCreateWindow(width, height, windowName.c_str(), nullptr, nullptr);
 }
-} // namespace ANA
+} // namespace ana

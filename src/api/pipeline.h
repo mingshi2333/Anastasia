@@ -2,7 +2,7 @@
 
 #include <string>
 #include <vector>
-namespace ANA
+namespace ana::vk
 {
 class ANAPipeline
 {
@@ -13,4 +13,4 @@ public:
 private:
     static std::vector<char> readFile(const std::string& filename);
 };
-} // namespace ANA
+} // namespace ana::vk

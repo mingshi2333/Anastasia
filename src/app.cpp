@@ -1,7 +1,6 @@
 #include "app.h"
-#include "ANA_window.h"
 
-namespace ANA
+namespace ana
 {
 void APP::run()
 {
@@ -10,4 +9,4 @@ void APP::run()
         glfwPollEvents();
     }
 }
-} // namespace ANA
+} // namespace ana

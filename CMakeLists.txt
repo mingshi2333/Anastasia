@@ -25,19 +25,17 @@ target_include_directories(Anastasia PRIVATE
     include
     ${GLFW_INCLUDE_DIRS}
     ${Vulkan_INCLUDE_DIRS}
+    ${PROJECT_SOURCE_DIR}/api
 )
 
 find_package(Threads REQUIRED)
 
-find_package(Vulkan REQUIRED)
-
-# Link libraries
 target_link_libraries(Anastasia
     PRIVATE
     glfw
     Threads::Threads
     glm::glm
-    Vulkan::Vulkan
+    api
 )
 
 # Compile definitions
