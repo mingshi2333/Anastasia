@@ -1,4 +1,5 @@
 #include "ANA_window.h"
+#include <stdexcept>
 
 namespace ana
 {
@@ -22,5 +23,13 @@ void ANAwindow::initWindow()
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     window = glfwCreateWindow(width, height, windowName.c_str(), nullptr, nullptr);
+}
+
+void ANAwindow::createWindowSurface(VkInstance instance, VkSurfaceKHR* surface)
+{
+    if (glfwCreateWindowSurface(instance, window, nullptr, surface) != VK_SUCCESS)
+    {
+        throw std::runtime_error("failed to create window surface!");
+    }
 }
 } // namespace ana

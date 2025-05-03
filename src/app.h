@@ -14,6 +14,14 @@ public:
 
 private:
     ANAwindow window{WIDTH, HEIGHT, "Vulkan"};
-    vk::ANAPipeline pipeline{"../shaders/vert.spv", "../shaders/frag.spv"};
+    vk::Device device{window};
+
+    VkPipelineLayout pipelineLayout{};
+    vk::ANAPipeline pipeline{
+        device,
+        "../shaders/vert.spv",
+        "../shaders/frag.spv",
+        vk::ANAPipeline::defaultPipelineConfigInfo(WIDTH, HEIGHT),
+    };
 };
 } // namespace ana

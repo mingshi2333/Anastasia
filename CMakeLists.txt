@@ -27,8 +27,10 @@ target_include_directories(Anastasia PRIVATE
     ${Vulkan_INCLUDE_DIRS}
     ${PROJECT_SOURCE_DIR}/api
 )
-
+find_package(Vulkan REQUIRED)
 find_package(Threads REQUIRED)
+
+add_subdirectory(src/api)
 
 target_link_libraries(Anastasia
     PRIVATE

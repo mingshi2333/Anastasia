@@ -1544,8 +1544,9 @@
 //         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 //         VkSemaphore wawitSemaphores[] = {imageAvailableSemaphores[currentFrame]};
 //         VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT}; // wait for color attachment
-//         output submitInfo.waitSemaphoreCount = 1;                                                   // wait for
-//         imageAvailableSemaphore submitInfo.pWaitSemaphores = wawitSemaphores; submitInfo.pWaitDstStageMask = waitStages;
+//         submitInfo.waitSemaphoreCount = 1;                                                   // wait for
+//         submitInfo.pWaitSemaphores = wawitSemaphores; 
+//         submitInfo.pWaitDstStageMask = waitStages;
 //         submitInfo.commandBufferCount = 1; // submit command buffer
 //         submitInfo.pCommandBuffers = &commandBuffers[currentFrame];
 
