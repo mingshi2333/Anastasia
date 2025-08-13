@@ -1,9 +1,10 @@
 #include "app.h"
 
 // std
-#include <stdexcept>
 #include <cstdlib>
 #include <iostream>
+#include <stdexcept>
+
 int main()
 {
     ana::APP app{};

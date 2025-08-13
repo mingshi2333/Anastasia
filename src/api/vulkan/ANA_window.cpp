@@ -4,7 +4,10 @@
 namespace ana
 {
 
-ANAwindow::ANAwindow(int w, int h, std::string name) : width(w), height(h), windowName(name)
+ANAwindow::ANAwindow(int w, int h, std::string name)
+    : width(w)
+    , height(h)
+    , windowName(name)
 {
     initWindow();
 }

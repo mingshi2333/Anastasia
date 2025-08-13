@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <vector>
 #include <vulkan/vulkan.h>
+
 namespace ana::vk
 {
 struct SwapChainSupportDetails
@@ -18,6 +19,7 @@ struct QueueFamilyIndices
     uint32_t presentFamily;
     bool graphicsFamilyHasValue;
     bool presentFamilyHasValue;
+
     bool isComplete()
     {
         return graphicsFamilyHasValue && presentFamilyHasValue;
@@ -36,27 +38,31 @@ public:
     ~Device();
 
     // Not copyable or movable
-    Device(const Device&) = delete;
+    Device(const Device&)         = delete;
     void operator=(const Device&) = delete;
-    Device(Device&&) = delete;
-    Device& operator=(Device&&) = delete;
+    Device(Device&&)              = delete;
+    Device& operator=(Device&&)   = delete;
 
     VkCommandPool getCommandPool()
     {
         return commandPool;
     }
+
     VkDevice device()
     {
         return device_;
     }
+
     VkSurfaceKHR surface()
     {
         return surface_;
     }
+
     VkQueue graphicsQueue()
     {
         return graphicsQueue_;
     }
+
     VkQueue presentQueue()
     {
         return presentQueue_;
@@ -66,12 +72,16 @@ public:
     {
         return querySwapChainSupport(physicalDevice);
     }
+
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+
     QueueFamilyIndices findPhysicalQueueFamilies()
     {
         return findQueueFamilies(physicalDevice);
     }
-    VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+
+    VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling,
+                                 VkFormatFeatureFlags features);
 
     // Buffer Helper Functions
     void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
@@ -115,8 +125,8 @@ private:
     VkQueue graphicsQueue_;
     VkQueue presentQueue_;
 
-    const std::vector<const char*> validationLayers = {"VK_LAYER_KHRONOS_validation"};
-    const std::vector<const char*> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+    const std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
+    const std::vector<const char*> deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 };
 
 }; // namespace ana::vk

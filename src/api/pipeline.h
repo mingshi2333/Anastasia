@@ -1,9 +1,10 @@
 #pragma once
 
+#include "vulkan/device.h"
 #include <string>
 #include <vector>
 #include <vulkan/vulkan_core.h>
-#include "vulkan/device.h"
+
 namespace ana::vk
 {
 
@@ -22,16 +23,17 @@ struct PipelineConfigInfo
     VkRenderPass renderPass{};
     uint32_t subpass{};
 };
+
 class ANAPipeline
 {
 public:
     ANAPipeline(Device& Anadevice, const std::string& vertFilepath, const std::string& fragFilepath,
                 const PipelineConfigInfo& configInfo);
     ~ANAPipeline();
-    ANAPipeline(const ANAPipeline&) = delete;
+    ANAPipeline(const ANAPipeline&)            = delete;
     ANAPipeline& operator=(const ANAPipeline&) = delete;
-    ANAPipeline(ANAPipeline&&) = delete;
-    ANAPipeline& operator=(ANAPipeline&&) = delete;
+    ANAPipeline(ANAPipeline&&)                 = delete;
+    ANAPipeline& operator=(ANAPipeline&&)      = delete;
 
     static PipelineConfigInfo defaultPipelineConfigInfo(uint32_t width, uint32_t height);
 
