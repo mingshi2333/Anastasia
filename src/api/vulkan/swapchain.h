@@ -15,8 +15,6 @@ namespace ana::vk
 class SwapChain
 {
 public:
-    static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
-
     SwapChain(vk::Device& deviceRef, VkExtent2D windowExtent);
     ~SwapChain();
 
@@ -103,6 +101,7 @@ private:
 
     VkSwapchainKHR swapChain;
 
+    size_t max_frames_in_flight;
     std::vector<VkSemaphore> imageAvailableSemaphores;
     std::vector<VkSemaphore> renderFinishedSemaphores;
     std::vector<VkFence> inFlightFences;

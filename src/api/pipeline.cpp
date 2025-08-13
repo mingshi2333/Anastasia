@@ -132,6 +132,11 @@ void ANAPipeline::createGraphicsPipeline(const std::string& vertFilepath, const 
     vertShaderModule = VK_NULL_HANDLE;
 }
 
+void ANAPipeline::bind(VkCommandBuffer commandBuffer)
+{
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+}
+
 PipelineConfigInfo ANAPipeline::defaultPipelineConfigInfo(uint32_t width, uint32_t height)
 {
     PipelineConfigInfo configInfo{};

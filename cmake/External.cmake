@@ -42,6 +42,12 @@ CPMAddPackage(
     PATCHES ${ANA_PATCH_DIR}/glm.patch
 )
 
+CPMAddPackage(
+    NAME vma
+    GITHUB_REPOSITORY GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator
+    GIT_TAG master
+)
+
 # CPMAddPackage(
 # NAME vulkan-headers
 # GITHUB_REPOSITORY KhronosGroup/Vulkan-Headers

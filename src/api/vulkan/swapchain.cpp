@@ -18,6 +18,7 @@ ana::vk::SwapChain::SwapChain(vk::Device& deviceRef, VkExtent2D extent)
     , windowExtent{ extent }
 {
     createSwapChain();
+    max_frames_in_flight = imageCount();
     createImageViews();
     createRenderPass();
     createDepthResources();
@@ -54,7 +55,7 @@ SwapChain::~SwapChain()
     vkDestroyRenderPass(device.device(), renderPass, nullptr);
 
     // cleanup synchronization objects
-    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+    for (size_t i = 0; i < max_frames_in_flight; i++)
     {
         vkDestroySemaphore(device.device(), renderFinishedSemaphores[i], nullptr);
         vkDestroySemaphore(device.device(), imageAvailableSemaphores[i], nullptr);
@@ -117,7 +118,7 @@ VkResult SwapChain::submitCommandBuffers(const VkCommandBuffer* buffers, uint32_
 
     auto result = vkQueuePresentKHR(device.presentQueue(), &presentInfo);
 
-    currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+    currentFrame = (currentFrame + 1) % max_frames_in_flight;
 
     return result;
 }
@@ -347,9 +348,9 @@ void SwapChain::createDepthResources()
 
 void SwapChain::createSyncObjects()
 {
-    imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-    renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-    inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+    imageAvailableSemaphores.resize(max_frames_in_flight);
+    renderFinishedSemaphores.resize(max_frames_in_flight);
+    inFlightFences.resize(max_frames_in_flight);
     imagesInFlight.resize(imageCount(), VK_NULL_HANDLE);
 
     VkSemaphoreCreateInfo semaphoreInfo = {};
@@ -359,7 +360,7 @@ void SwapChain::createSyncObjects()
     fenceInfo.sType             = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceInfo.flags             = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+    for (size_t i = 0; i < max_frames_in_flight; i++)
     {
         if (vkCreateSemaphore(device.device(), &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
             vkCreateSemaphore(device.device(), &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||

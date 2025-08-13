@@ -38,6 +38,7 @@ target_link_libraries(Anastasia
     Threads::Threads
     glm::glm
     api
+    GPUOpen::VulkanMemoryAllocator
 )
 
 # Compile definitions
