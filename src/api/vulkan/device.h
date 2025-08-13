@@ -1,7 +1,6 @@
 #pragma once
 #include "ANA_window.h"
 #include <cstdint>
-#include <string>
 #include <vector>
 #include <vulkan/vulkan.h>
 namespace ana::vk
