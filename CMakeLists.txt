@@ -14,30 +14,48 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${ANA_ROOT_DIR}/cmake")
 include(CompilerOptions) # Find dependencies
 include(External)
 
-# Recursively find all cpp files
-file(GLOB_RECURSE SOURCE_FILES "${PROJECT_SOURCE_DIR}/src/*.cpp")
+# RHI library
+add_library(ana_rhi INTERFACE)
+target_include_directories(ana_rhi INTERFACE 
+    ${PROJECT_SOURCE_DIR}/src/rhi/include
+)
 
-# Add executable, using the collected source file list
-add_executable(Anastasia ${SOURCE_FILES})
+# Vulkan backend for RHI
+add_library(ana_vk STATIC
+    ${PROJECT_SOURCE_DIR}/src/vk/src/vk_device.cpp
+)
+target_include_directories(ana_vk 
+    PUBLIC
+        ${PROJECT_SOURCE_DIR}/src/vk/include
+)
+# The vk backend will implement the rhi api
+target_link_libraries(ana_vk PUBLIC ana_rhi)
 
-# Include directories
+# Find all source files
+file(GLOB_RECURSE ALL_SOURCE_FILES "${PROJECT_SOURCE_DIR}/src/*.cpp")
+
+# Exclude files that are part of our libraries from the main executable sources
+list(FILTER ALL_SOURCE_FILES EXCLUDE REGEX ".*/(vk/src|api/vulkan)/.*")
+
+# Add executable
+add_executable(Anastasia ${ALL_SOURCE_FILES})
+
+# Include directories for the main executable
 target_include_directories(Anastasia PRIVATE
     include
     ${GLFW_INCLUDE_DIRS}
     ${Vulkan_INCLUDE_DIRS}
-    ${PROJECT_SOURCE_DIR}/api
 )
+
 find_package(Vulkan REQUIRED)
 find_package(Threads REQUIRED)
 
-add_subdirectory(src/api)
-
 target_link_libraries(Anastasia
     PRIVATE
+    ana_vk # Link against the RHI implementation
     glfw
     Threads::Threads
     glm::glm
-    api
     GPUOpen::VulkanMemoryAllocator
     imgui
 )
