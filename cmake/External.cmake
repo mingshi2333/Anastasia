@@ -33,13 +33,18 @@ set(ANA_PATCH_DIR ${CMAKE_SOURCE_DIR}/patches)
 # VERSION 0.11.1
 # )
 # endif()
+find_program(PATCH_EXECUTABLE patch)
+if(NOT PATCH_EXECUTABLE)
+    message(FATAL_ERROR "patch command not found")
+endif()
+
 CPMAddPackage(
     NAME glm
     GITHUB_REPOSITORY g-truc/glm
     GIT_TAG 1.0.1
     OPTIONS
     "GLM_TEST_ENABLE OFF"
-    PATCHES ${ANA_PATCH_DIR}/glm.patch
+    PATCH_COMMAND ${PATCH_EXECUTABLE} -p1 -N -i ${ANA_PATCH_DIR}/glm.patch -d ${glm_SOURCE_DIR}
 )
 
 CPMAddPackage(

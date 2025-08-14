@@ -85,7 +85,7 @@ void vk::Device::createInstance()
     appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.pEngineName        = "No Engine";
     appInfo.engineVersion      = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.apiVersion         = VK_API_VERSION_1_0;
+    appInfo.apiVersion         = VK_API_VERSION_1_3;
 
     VkInstanceCreateInfo createInfo = {};
     createInfo.sType                = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -169,13 +169,23 @@ void vk::Device::createLogicalDevice()
     VkPhysicalDeviceFeatures deviceFeatures = {};
     deviceFeatures.samplerAnisotropy        = VK_TRUE;
 
+    VkPhysicalDeviceDynamicRenderingFeatures dynamicRenderingFeatures{};
+    dynamicRenderingFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES;
+    dynamicRenderingFeatures.dynamicRendering = VK_TRUE;
+
+    VkPhysicalDeviceFeatures2 deviceFeatures2{};
+    deviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+    deviceFeatures2.features = deviceFeatures;
+    deviceFeatures2.pNext = &dynamicRenderingFeatures;
+
     VkDeviceCreateInfo createInfo = {};
     createInfo.sType              = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 
     createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
     createInfo.pQueueCreateInfos    = queueCreateInfos.data();
 
-    createInfo.pEnabledFeatures        = &deviceFeatures;
+    createInfo.pEnabledFeatures        = nullptr;
+    createInfo.pNext                   = &deviceFeatures2;
     createInfo.enabledExtensionCount   = static_cast<uint32_t>(deviceExtensions.size());
     createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 

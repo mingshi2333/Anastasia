@@ -61,8 +61,7 @@ void ANAPipeline::createGraphicsPipeline(const std::string& vertFilepath, const 
 {
     assert(configInfo.pipelineLayout != nullptr &&
            "Cannot create graphics pipeline: no pipelineLayout provided in config info");
-    assert(configInfo.renderPass != nullptr &&
-           "Cannot create graphics pipeline: no renderPass provided in config info");
+    
 
     auto vertCode = readFile(vertFilepath);
     auto fragCode = readFile(fragFilepath);
@@ -114,8 +113,17 @@ void ANAPipeline::createGraphicsPipeline(const std::string& vertFilepath, const 
     pipelineInfo.pDepthStencilState           = &configInfo.depthStencilInfo;
 
     pipelineInfo.layout     = configInfo.pipelineLayout;
-    pipelineInfo.renderPass = configInfo.renderPass;
-    pipelineInfo.subpass    = configInfo.subpass;
+    pipelineInfo.renderPass = VK_NULL_HANDLE;
+
+    VkPipelineRenderingCreateInfo renderingCreateInfo{};
+    renderingCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
+    renderingCreateInfo.colorAttachmentCount = 1;
+    renderingCreateInfo.pColorAttachmentFormats = &configInfo.colorAttachmentFormat;
+    renderingCreateInfo.depthAttachmentFormat = configInfo.depthAttachmentFormat;
+    renderingCreateInfo.stencilAttachmentFormat = VK_FORMAT_UNDEFINED;
+
+    pipelineInfo.pNext = &renderingCreateInfo;
+    pipelineInfo.subpass = 0;
 
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
     pipelineInfo.basePipelineIndex  = -1; // Optional

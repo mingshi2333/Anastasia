@@ -20,8 +20,8 @@ struct PipelineConfigInfo
     VkPipelineColorBlendStateCreateInfo colorBlendingInfo{};
     VkPipelineDepthStencilStateCreateInfo depthStencilInfo{};
     VkPipelineLayout pipelineLayout{};
-    VkRenderPass renderPass{};
-    uint32_t subpass{};
+    VkFormat colorAttachmentFormat;
+    VkFormat depthAttachmentFormat;
 };
 
 class ANAPipeline
