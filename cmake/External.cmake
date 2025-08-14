@@ -72,29 +72,24 @@ CPMAddPackage(
 # "GLFW_INSTALL OFF"
 # )
 
-# #### <<<<<<< imgui
-# CPMAddPackage(
-# NAME imgui
-# VERSION 1.91.8
-# URL https://github.com/ocornut/imgui/archive/refs/tags/v1.91.8-docking.tar.gz
-# DOWNLOAD_ONLY YES
-# )
+CPMAddPackage(
+    NAME imgui
+    GITHUB_REPOSITORY ocornut/imgui
+    GIT_TAG docking
+    DOWNLOAD_ONLY YES
+)
 
-# add_library(imgui STATIC
-# ${imgui_SOURCE_DIR}/imgui.cpp
-# ${imgui_SOURCE_DIR}/imgui_demo.cpp
-# ${imgui_SOURCE_DIR}/imgui_draw.cpp
-# ${imgui_SOURCE_DIR}/imgui_tables.cpp
-# ${imgui_SOURCE_DIR}/imgui_widgets.cpp
-# ${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp
-
-# $<$<BOOL:${APH_WSI_BACKEND_IS_GLFW}>:${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp>
-# $<$<BOOL:${APH_WSI_BACKEND_IS_SDL2}>:${imgui_SOURCE_DIR}/backends/imgui_impl_sdl2.cpp>
-# )
-# target_include_directories(imgui PUBLIC ${imgui_SOURCE_DIR} ${imgui_SOURCE_DIR}/backends)
-# target_link_libraries(imgui
-# PRIVATE
-# $<$<BOOL:${APH_WSI_BACKEND_IS_GLFW}>:glfw>
-# $<$<BOOL:${APH_WSI_BACKEND_IS_SDL2}>:SDL2::SDL2-static>
-# )
-# target_compile_definitions(imgui PRIVATE VK_NO_PROTOTYPES)
+add_library(imgui STATIC
+    ${imgui_SOURCE_DIR}/imgui.cpp
+    ${imgui_SOURCE_DIR}/imgui_demo.cpp
+    ${imgui_SOURCE_DIR}/imgui_draw.cpp
+    ${imgui_SOURCE_DIR}/imgui_tables.cpp
+    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
+)
+target_include_directories(imgui PUBLIC
+    ${imgui_SOURCE_DIR}
+    ${imgui_SOURCE_DIR}/backends
+)
+target_link_libraries(imgui PRIVATE glfw)

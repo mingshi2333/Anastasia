@@ -39,6 +39,7 @@ target_link_libraries(Anastasia
     glm::glm
     api
     GPUOpen::VulkanMemoryAllocator
+    imgui
 )
 
 # Compile definitions

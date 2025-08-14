@@ -26,6 +26,11 @@ public:
         return { static_cast<uint32_t>(width), static_cast<uint32_t>(height) };
     }
 
+    GLFWwindow* getGLFWwindow() const
+    {
+        return window;
+    }
+
 private:
     void initWindow();
     GLFWwindow* window;

@@ -7,6 +7,9 @@
 #include <memory>
 #include <vulkan/vulkan_core.h>
 
+// Forward declarations for ImGui
+struct ImGuiContext;
+
 namespace ana
 {
 class APP
@@ -30,6 +33,10 @@ private:
     void createCommandBuffers();
     void drawFrame();
 
+    void initImGui();
+    void renderImGui(VkCommandBuffer commandBuffer);
+    void shutdownImGui();
+
     ANAwindow window{ WIDTH, HEIGHT, "Vulkan" };
     vk::Device device{ window };
     vk::SwapChain swapChain{ device, window.getExtent() };
@@ -37,5 +44,7 @@ private:
     std::unique_ptr<vk::ANAPipeline> anaPipeline;
     VkPipelineLayout pipelineLayout;
     std::vector<VkCommandBuffer> commandBuffers;
+
+    VkDescriptorPool imguiPool = VK_NULL_HANDLE;
 };
 } // namespace ana
