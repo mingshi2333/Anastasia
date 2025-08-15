@@ -1,5 +1,6 @@
 #include "model.h"
 #include <cassert>
+#include <cstddef>
 #include <cstring>
 #include <vector>
 #include <vulkan/vulkan_core.h>
@@ -56,10 +57,11 @@ std::vector<VkVertexInputBindingDescription> Model::Vertex::getBindingDescriptio
     };
 }
 
-std::vector<VkVertexInputAttributeDescription> Model::Vertex::getAttribuuteDescriptions()
+std::vector<VkVertexInputAttributeDescription> Model::Vertex::getAttributeDescriptions()
 {
     return {
-        { 0, 0, VK_FORMAT_R32G32_SFLOAT, 0 }
+        { 0, 0, VK_FORMAT_R32G32_SFLOAT,    offsetof(Model::Vertex, position) },
+        { 1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Model::Vertex, color)    }
     };
 }
 

@@ -182,8 +182,12 @@ void APP::sierpinski(std::vector<Model::Vertex>& vertices, int depth, glm::vec2 
 
 void APP::loadModel()
 {
-    std::vector<Model::Vertex> vertices{};
-    sierpinski(vertices, 5, { -0.5f, 0.5f }, { 0.5f, 0.5f }, { 0.0f, -0.5f });
+    std::vector<Model::Vertex> vertices{
+        { { 0.0f, -0.5f }, { 1.0f, 0.0f, 0.0f } },
+        { { 0.5f, 0.5f },  { 0.0f, 1.0f, 0.0f } },
+        { { -0.5f, 0.5f }, { 0.0f, 0.0f, 1.0f } }
+    };
+    // sierpinski(vertices, 5, { -0.5f, 0.5f }, { 0.5f, 0.5f }, { 0.0f, -0.5f });
     model = std::make_unique<ana::Model>(device, vertices);
 }
 
