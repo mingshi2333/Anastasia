@@ -1,7 +1,10 @@
 #include "app.h"
+#include "api/vulkan/model.h"
 #include <array>
 #include <cstdint>
+#include <memory>
 #include <stdexcept>
+#include <vector>
 #include <vulkan/vulkan_core.h>
 
 #define VMA_IMPLEMENTATION
@@ -15,6 +18,7 @@ namespace ana
 {
 APP::APP()
 {
+    loadModel();
     createPipelineLayout();
     createPipeline();
     initImGui();
@@ -83,17 +87,17 @@ void APP::initImGui()
     init_info.DescriptorPool            = imguiPool;
     init_info.MinImageCount             = swapChain.imageCount();
     init_info.ImageCount                = swapChain.imageCount();
-    init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
-    init_info.RenderPass = VK_NULL_HANDLE;
-    init_info.UseDynamicRendering = true;
+    init_info.MSAASamples               = VK_SAMPLE_COUNT_1_BIT;
+    init_info.RenderPass                = VK_NULL_HANDLE;
+    init_info.UseDynamicRendering       = true;
 
     // Required by dynamic rendering
     static VkFormat color_format;
-    color_format = swapChain.getSwapChainImageFormat();
-    init_info.PipelineRenderingCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR;
+    color_format                                               = swapChain.getSwapChainImageFormat();
+    init_info.PipelineRenderingCreateInfo.sType                = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR;
     init_info.PipelineRenderingCreateInfo.colorAttachmentCount = 1;
     init_info.PipelineRenderingCreateInfo.pColorAttachmentFormats = &color_format;
-    init_info.PipelineRenderingCreateInfo.depthAttachmentFormat = swapChain.findDepthFormat();
+    init_info.PipelineRenderingCreateInfo.depthAttachmentFormat   = swapChain.findDepthFormat();
     init_info.PipelineRenderingCreateInfo.stencilAttachmentFormat = VK_FORMAT_UNDEFINED;
 
     ImGui_ImplVulkan_Init(&init_info);
@@ -155,6 +159,32 @@ void APP::createCommandBuffers()
     {
         throw std::runtime_error("failed to allocate command buffers!");
     }
+}
+
+void APP::sierpinski(std::vector<Model::Vertex>& vertices, int depth, glm::vec2 left, glm::vec2 right, glm::vec2 top)
+{
+    if (depth <= 0)
+    {
+        vertices.push_back({ top });
+        vertices.push_back({ right });
+        vertices.push_back({ left });
+    }
+    else
+    {
+        auto leftTop   = 0.5f * (left + top);
+        auto rightTop  = 0.5f * (right + top);
+        auto leftRight = 0.5f * (left + right);
+        sierpinski(vertices, depth - 1, left, leftRight, leftTop);
+        sierpinski(vertices, depth - 1, leftRight, right, rightTop);
+        sierpinski(vertices, depth - 1, leftTop, rightTop, top);
+    }
+}
+
+void APP::loadModel()
+{
+    std::vector<Model::Vertex> vertices{};
+    sierpinski(vertices, 5, { -0.5f, 0.5f }, { 0.5f, 0.5f }, { 0.0f, -0.5f });
+    model = std::make_unique<ana::Model>(device, vertices);
 }
 
 void APP::drawFrame()
@@ -223,7 +253,11 @@ void APP::drawFrame()
     vkCmdBeginRendering(commandBuffers[imageIndex], &renderingInfo);
 
     anaPipeline->bind(commandBuffers[imageIndex]);
-    vkCmdDraw(commandBuffers[imageIndex], 3, 1, 0, 0);
+
+    model->bind(commandBuffers[imageIndex]);
+    model->draw(commandBuffers[imageIndex]);
+
+    // vkCmdDraw(commandBuffers[imageIndex], 3, 1, 0, 0);
 
     renderImGui(commandBuffers[imageIndex]);
 

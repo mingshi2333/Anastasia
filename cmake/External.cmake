@@ -3,6 +3,12 @@ set(VK_SDK_VERSION 1.4.304)
 
 set(ANA_PATCH_DIR ${CMAKE_SOURCE_DIR}/patches)
 
+CPMAddPackage(
+    NAME backward
+    GITHUB_REPOSITORY bombela/backward-cpp
+    GIT_TAG v1.6
+)
+
 # CPMAddPackage(
 # NAME Format.cmake
 # VERSION 1.8.3
@@ -34,6 +40,7 @@ set(ANA_PATCH_DIR ${CMAKE_SOURCE_DIR}/patches)
 # )
 # endif()
 find_program(PATCH_EXECUTABLE patch)
+
 if(NOT PATCH_EXECUTABLE)
     message(FATAL_ERROR "patch command not found")
 endif()
@@ -76,7 +83,6 @@ CPMAddPackage(
 # "GLFW_BULID_DOCS OFF"
 # "GLFW_INSTALL OFF"
 # )
-
 CPMAddPackage(
     NAME imgui
     GITHUB_REPOSITORY ocornut/imgui

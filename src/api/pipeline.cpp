@@ -2,6 +2,7 @@
 #include "vulkan/device.h"
 // std
 #include <cassert>
+#include <cstdint>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
@@ -61,7 +62,6 @@ void ANAPipeline::createGraphicsPipeline(const std::string& vertFilepath, const 
 {
     assert(configInfo.pipelineLayout != nullptr &&
            "Cannot create graphics pipeline: no pipelineLayout provided in config info");
-    
 
     auto vertCode = readFile(vertFilepath);
     auto fragCode = readFile(fragFilepath);
@@ -85,12 +85,15 @@ void ANAPipeline::createGraphicsPipeline(const std::string& vertFilepath, const 
     shaderStages[1].pNext               = nullptr;
     shaderStages[1].pSpecializationInfo = nullptr;
 
+    auto bindingDescriptions   = Model::Vertex::getBindingDescriptions();
+    auto attributeDescriptions = Model::Vertex::getAttribuuteDescriptions();
+
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.sType                           = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInputInfo.vertexBindingDescriptionCount   = 0;
-    vertexInputInfo.pVertexBindingDescriptions      = nullptr; // Optional
-    vertexInputInfo.vertexAttributeDescriptionCount = 0;
-    vertexInputInfo.pVertexAttributeDescriptions    = nullptr; // Optional
+    vertexInputInfo.vertexBindingDescriptionCount   = static_cast<uint32_t>(attributeDescriptions.size());
+    vertexInputInfo.pVertexBindingDescriptions      = bindingDescriptions.data();
+    vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
+    vertexInputInfo.pVertexAttributeDescriptions    = attributeDescriptions.data();
 
     VkPipelineViewportStateCreateInfo viewportInfo{};
     viewportInfo.sType         = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -116,13 +119,13 @@ void ANAPipeline::createGraphicsPipeline(const std::string& vertFilepath, const 
     pipelineInfo.renderPass = VK_NULL_HANDLE;
 
     VkPipelineRenderingCreateInfo renderingCreateInfo{};
-    renderingCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
-    renderingCreateInfo.colorAttachmentCount = 1;
+    renderingCreateInfo.sType                   = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
+    renderingCreateInfo.colorAttachmentCount    = 1;
     renderingCreateInfo.pColorAttachmentFormats = &configInfo.colorAttachmentFormat;
-    renderingCreateInfo.depthAttachmentFormat = configInfo.depthAttachmentFormat;
+    renderingCreateInfo.depthAttachmentFormat   = configInfo.depthAttachmentFormat;
     renderingCreateInfo.stencilAttachmentFormat = VK_FORMAT_UNDEFINED;
 
-    pipelineInfo.pNext = &renderingCreateInfo;
+    pipelineInfo.pNext   = &renderingCreateInfo;
     pipelineInfo.subpass = 0;
 
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional

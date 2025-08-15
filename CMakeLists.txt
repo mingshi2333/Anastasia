@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.28)
 project(Anastasia)
 
 # C++ standard
@@ -40,6 +40,8 @@ target_link_libraries(Anastasia
     api
     GPUOpen::VulkanMemoryAllocator
     imgui
+    backward
+    dw
 )
 
 # Compile definitions

@@ -3,6 +3,7 @@
 #include "api/pipeline.h"
 #include "api/vulkan/ANA_window.h"
 #include "api/vulkan/device.h"
+#include "api/vulkan/model.h"
 #include "api/vulkan/swapchain.h"
 #include <memory>
 #include <vulkan/vulkan_core.h>
@@ -28,6 +29,8 @@ public:
     void run();
 
 private:
+    void sierpinski(std::vector<Model::Vertex>& vertices, int depth, glm::vec2 left, glm::vec2 right, glm::vec2 top);
+    void loadModel();
     void createPipelineLayout();
     void createPipeline();
     void createCommandBuffers();
@@ -46,5 +49,6 @@ private:
     std::vector<VkCommandBuffer> commandBuffers;
 
     VkDescriptorPool imguiPool = VK_NULL_HANDLE;
+    std::unique_ptr<Model> model;
 };
 } // namespace ana
