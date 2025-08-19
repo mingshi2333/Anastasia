@@ -5,7 +5,9 @@
 #include <memory>
 #include <stdexcept>
 #include <vector>
+// #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_core.h>
+// #include <vulkan/vulkan_handles.hpp>
 
 #define VMA_IMPLEMENTATION
 #include <vk_mem_alloc.h>
@@ -149,6 +151,9 @@ void APP::createPipeline()
 
 void APP::createCommandBuffers()
 {
+
+    // commnandBuffers.resize(swapChain.imageCount());
+
     commandBuffers.resize(swapChain.imageCount());
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
