@@ -52,7 +52,6 @@ private:
     VkPipelineLayout pipelineLayout;
     std::vector<VkCommandBuffer> commandBuffers;
 
-
     VkDescriptorPool imguiPool = VK_NULL_HANDLE;
     std::unique_ptr<Model> model;
 };

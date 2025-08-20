@@ -1,4 +1,5 @@
 #include "app.h"
+#include "api/pipeline.h"
 #include "api/vulkan/model.h"
 #include <array>
 #include <cstdint>
@@ -145,7 +146,9 @@ void APP::createPipeline()
 {
     assert(swapChain != nullptr && "Cannot create pipeline before swap chain");
     assert(pipelineLayout != nullptr && "Cannot create pipeline before pipeline layout");
-    auto pipelineConfig = vk::ANAPipeline::defaultPipelineConfigInfo(swapChain->width(), swapChain->height());
+    ana::vk::PipelineConfigInfo pipelineConfig{};
+    vk::ANAPipeline::defaultPipelineConfigInfo(pipelineConfig);
+    //pipelineConfig.renderPass            = swapChain->getRenderPass();
     pipelineConfig.colorAttachmentFormat = swapChain->getSwapChainImageFormat();
     pipelineConfig.depthAttachmentFormat = swapChain->findDepthFormat();
     pipelineConfig.pipelineLayout        = pipelineLayout;
@@ -305,6 +308,20 @@ void APP::drawFrame()
     renderingInfo.pStencilAttachment   = nullptr;
 
     vkCmdBeginRendering(commandBuffers[imageIndex], &renderingInfo);
+
+    VkViewport viewport{};
+    viewport.x        = 0.0f;
+    viewport.y        = 0.0f;
+    viewport.width    = static_cast<float>(swapChain->getSwapChainExtent().width);
+    viewport.height   = static_cast<float>(swapChain->getSwapChainExtent().height);
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
+    vkCmdSetViewport(commandBuffers[imageIndex], 0, 1, &viewport);
+
+    VkRect2D scissor{};
+    scissor.offset = { 0, 0 };
+    scissor.extent = swapChain->getSwapChainExtent();
+    vkCmdSetScissor(commandBuffers[imageIndex], 0, 1, &scissor);
 
     anaPipeline->bind(commandBuffers[imageIndex]);
 
