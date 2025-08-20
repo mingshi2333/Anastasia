@@ -20,9 +20,11 @@ namespace ana
 {
 APP::APP()
 {
+    glfwSetWindowUserPointer(window.getGLFWwindow(), this);
+    glfwSetFramebufferSizeCallback(window.getGLFWwindow(), framebufferResizeCallback);
     loadModel();
     createPipelineLayout();
-    createPipeline();
+    recreateSwapChain();
     initImGui();
     createCommandBuffers();
 }
@@ -41,6 +43,7 @@ void APP::run()
         glfwPollEvents();
         drawFrame();
     }
+    vkDeviceWaitIdle(device.device());
 }
 
 void APP::initImGui()
@@ -87,19 +90,19 @@ void APP::initImGui()
     init_info.Device                    = device.device();
     init_info.Queue                     = device.graphicsQueue();
     init_info.DescriptorPool            = imguiPool;
-    init_info.MinImageCount             = swapChain.imageCount();
-    init_info.ImageCount                = swapChain.imageCount();
+    init_info.MinImageCount             = swapChain->imageCount();
+    init_info.ImageCount                = swapChain->imageCount();
     init_info.MSAASamples               = VK_SAMPLE_COUNT_1_BIT;
     init_info.RenderPass                = VK_NULL_HANDLE;
     init_info.UseDynamicRendering       = true;
 
     // Required by dynamic rendering
     static VkFormat color_format;
-    color_format                                               = swapChain.getSwapChainImageFormat();
+    color_format                                               = swapChain->getSwapChainImageFormat();
     init_info.PipelineRenderingCreateInfo.sType                = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR;
     init_info.PipelineRenderingCreateInfo.colorAttachmentCount = 1;
     init_info.PipelineRenderingCreateInfo.pColorAttachmentFormats = &color_format;
-    init_info.PipelineRenderingCreateInfo.depthAttachmentFormat   = swapChain.findDepthFormat();
+    init_info.PipelineRenderingCreateInfo.depthAttachmentFormat   = swapChain->findDepthFormat();
     init_info.PipelineRenderingCreateInfo.stencilAttachmentFormat = VK_FORMAT_UNDEFINED;
 
     ImGui_ImplVulkan_Init(&init_info);
@@ -141,20 +144,57 @@ void APP::createPipelineLayout()
 
 void APP::createPipeline()
 {
-    auto pipelineConfig = vk::ANAPipeline::defaultPipelineConfigInfo(swapChain.width(), swapChain.height());
-    pipelineConfig.colorAttachmentFormat = swapChain.getSwapChainImageFormat();
-    pipelineConfig.depthAttachmentFormat = swapChain.findDepthFormat();
+    auto pipelineConfig = vk::ANAPipeline::defaultPipelineConfigInfo(swapChain->width(), swapChain->height());
+    pipelineConfig.colorAttachmentFormat = swapChain->getSwapChainImageFormat();
+    pipelineConfig.depthAttachmentFormat = swapChain->findDepthFormat();
     pipelineConfig.pipelineLayout        = pipelineLayout;
     anaPipeline =
         std::make_unique<vk::ANAPipeline>(device, "../shaders/vert.spv", "../shaders/frag.spv", pipelineConfig);
 }
 
+void APP::freeCommandBuffers()
+{
+    vkFreeCommandBuffers(device.device(), device.getCommandPool(), static_cast<uint32_t>(commandBuffers.size()),
+                         commandBuffers.data());
+    commandBuffers.clear();
+}
+
+void APP::recreateSwapChain()
+{
+    auto extent = window.getExtent();
+    while (extent.width == 0 || extent.height == 0)
+    {
+        extent = window.getExtent();
+        glfwWaitEvents();
+    }
+
+    vkDeviceWaitIdle(device.device());
+
+    if (swapChain == nullptr)
+    {
+        swapChain = std::make_shared<vk::SwapChain>(device, extent);
+    }
+    else
+    {
+        swapChain = std::make_shared<vk::SwapChain>(device, extent, swapChain);
+    }
+    createPipeline();
+    freeCommandBuffers();
+    createCommandBuffers();
+}
+
+void APP::framebufferResizeCallback(GLFWwindow* window, int width, int height)
+{
+    auto app                = reinterpret_cast<APP*>(glfwGetWindowUserPointer(window));
+    app->framebufferResized = true;
+}
+
 void APP::createCommandBuffers()
 {
 
-    // commnandBuffers.resize(swapChain.imageCount());
+    // commnandBuffers.resize(swapChain->imageCount());
 
-    commandBuffers.resize(swapChain.imageCount());
+    commandBuffers.resize(swapChain->imageCount());
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -199,7 +239,14 @@ void APP::loadModel()
 void APP::drawFrame()
 {
     uint32_t imageIndex;
-    auto result = swapChain.acquireNextImage(&imageIndex);
+    auto result = swapChain->acquireNextImage(&imageIndex);
+
+    if (result == VK_ERROR_OUT_OF_DATE_KHR)
+    {
+        recreateSwapChain();
+        return;
+    }
+
     if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
     {
         throw std::runtime_error("failed to acquire swap chain image!");
@@ -221,7 +268,7 @@ void APP::drawFrame()
     imageMemoryBarrier_to_color.dstAccessMask                   = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
     imageMemoryBarrier_to_color.oldLayout                       = VK_IMAGE_LAYOUT_UNDEFINED;
     imageMemoryBarrier_to_color.newLayout                       = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    imageMemoryBarrier_to_color.image                           = swapChain.getImage(imageIndex);
+    imageMemoryBarrier_to_color.image                           = swapChain->getImage(imageIndex);
     imageMemoryBarrier_to_color.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
     imageMemoryBarrier_to_color.subresourceRange.baseMipLevel   = 0;
     imageMemoryBarrier_to_color.subresourceRange.levelCount     = 1;
@@ -235,7 +282,7 @@ void APP::drawFrame()
     // Dynamic Rendering Begin
     VkRenderingAttachmentInfo colorAttachmentInfo{};
     colorAttachmentInfo.sType            = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
-    colorAttachmentInfo.imageView        = swapChain.getImageView(imageIndex);
+    colorAttachmentInfo.imageView        = swapChain->getImageView(imageIndex);
     colorAttachmentInfo.imageLayout      = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     colorAttachmentInfo.loadOp           = VK_ATTACHMENT_LOAD_OP_CLEAR;
     colorAttachmentInfo.storeOp          = VK_ATTACHMENT_STORE_OP_STORE;
@@ -243,7 +290,7 @@ void APP::drawFrame()
 
     VkRenderingAttachmentInfo depthAttachmentInfo{};
     depthAttachmentInfo.sType                   = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
-    depthAttachmentInfo.imageView               = swapChain.getDepthImageView(imageIndex);
+    depthAttachmentInfo.imageView               = swapChain->getDepthImageView(imageIndex);
     depthAttachmentInfo.imageLayout             = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
     depthAttachmentInfo.loadOp                  = VK_ATTACHMENT_LOAD_OP_CLEAR;
     depthAttachmentInfo.storeOp                 = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -252,7 +299,7 @@ void APP::drawFrame()
     VkRenderingInfo renderingInfo{};
     renderingInfo.sType                = VK_STRUCTURE_TYPE_RENDERING_INFO;
     renderingInfo.renderArea.offset    = { 0, 0 };
-    renderingInfo.renderArea.extent    = swapChain.getSwapChainExtent();
+    renderingInfo.renderArea.extent    = swapChain->getSwapChainExtent();
     renderingInfo.layerCount           = 1;
     renderingInfo.colorAttachmentCount = 1;
     renderingInfo.pColorAttachments    = &colorAttachmentInfo;
@@ -281,7 +328,7 @@ void APP::drawFrame()
     imageMemoryBarrier_to_present.dstAccessMask                   = 0;
     imageMemoryBarrier_to_present.oldLayout                       = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     imageMemoryBarrier_to_present.newLayout                       = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-    imageMemoryBarrier_to_present.image                           = swapChain.getImage(imageIndex);
+    imageMemoryBarrier_to_present.image                           = swapChain->getImage(imageIndex);
     imageMemoryBarrier_to_present.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
     imageMemoryBarrier_to_present.subresourceRange.baseMipLevel   = 0;
     imageMemoryBarrier_to_present.subresourceRange.levelCount     = 1;
@@ -297,8 +344,13 @@ void APP::drawFrame()
         throw std::runtime_error("failed to record command buffer!");
     }
 
-    result = swapChain.submitCommandBuffers(&commandBuffers[imageIndex], &imageIndex);
-    if (result != VK_SUCCESS)
+    result = swapChain->submitCommandBuffers(&commandBuffers[imageIndex], &imageIndex);
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized)
+    {
+        framebufferResized = false;
+        recreateSwapChain();
+    }
+    else if (result != VK_SUCCESS)
     {
         throw std::runtime_error("failed to present swap chain image!");
     }

@@ -6,6 +6,7 @@
 #include <vulkan/vulkan.h>
 
 // std lib headers
+#include <memory>
 #include <vector>
 
 namespace ana::vk
@@ -15,6 +16,7 @@ class SwapChain
 {
 public:
     SwapChain(vk::Device& deviceRef, VkExtent2D windowExtent);
+    SwapChain(vk::Device& deviceRef, VkExtent2D windowExtent, std::shared_ptr<SwapChain> previous);
     ~SwapChain();
 
     SwapChain(const SwapChain&)      = delete;
@@ -95,6 +97,7 @@ private:
     VkExtent2D windowExtent;
 
     VkSwapchainKHR swapChain;
+    std::shared_ptr<SwapChain> oldSwapChain;
 
     size_t max_frames_in_flight;
     std::vector<VkSemaphore> imageAvailableSemaphores;

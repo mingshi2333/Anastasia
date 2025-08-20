@@ -34,19 +34,26 @@ private:
     void createPipelineLayout();
     void createPipeline();
     void createCommandBuffers();
+    void freeCommandBuffers();
     void drawFrame();
+    void recreateSwapChain();
 
     void initImGui();
     void renderImGui(VkCommandBuffer commandBuffer);
     void shutdownImGui();
 
+    static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
+    void framebufferResize(int width, int height);
+
     ANAwindow window{ WIDTH, HEIGHT, "Vulkan" };
     vk::Device device{ window };
-    vk::SwapChain swapChain{ device, window.getExtent() };
+    std::shared_ptr<vk::SwapChain> swapChain;
 
     std::unique_ptr<vk::ANAPipeline> anaPipeline;
     VkPipelineLayout pipelineLayout;
     std::vector<VkCommandBuffer> commandBuffers;
+
+    bool framebufferResized = false;
 
     VkDescriptorPool imguiPool = VK_NULL_HANDLE;
     std::unique_ptr<Model> model;
