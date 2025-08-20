@@ -42,7 +42,6 @@ private:
     void renderImGui(VkCommandBuffer commandBuffer);
     void shutdownImGui();
 
-    static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
     void framebufferResize(int width, int height);
 
     ANAwindow window{ WIDTH, HEIGHT, "Vulkan" };
@@ -53,7 +52,6 @@ private:
     VkPipelineLayout pipelineLayout;
     std::vector<VkCommandBuffer> commandBuffers;
 
-    bool framebufferResized = false;
 
     VkDescriptorPool imguiPool = VK_NULL_HANDLE;
     std::unique_ptr<Model> model;

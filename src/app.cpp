@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <memory>
 #include <stdexcept>
+#include <utility>
 #include <vector>
 // #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_core.h>
@@ -20,8 +21,6 @@ namespace ana
 {
 APP::APP()
 {
-    glfwSetWindowUserPointer(window.getGLFWwindow(), this);
-    glfwSetFramebufferSizeCallback(window.getGLFWwindow(), framebufferResizeCallback);
     loadModel();
     createPipelineLayout();
     recreateSwapChain();
@@ -144,6 +143,8 @@ void APP::createPipelineLayout()
 
 void APP::createPipeline()
 {
+    assert(swapChain != nullptr && "Cannot create pipeline before swap chain");
+    assert(pipelineLayout != nullptr && "Cannot create pipeline before pipeline layout");
     auto pipelineConfig = vk::ANAPipeline::defaultPipelineConfigInfo(swapChain->width(), swapChain->height());
     pipelineConfig.colorAttachmentFormat = swapChain->getSwapChainImageFormat();
     pipelineConfig.depthAttachmentFormat = swapChain->findDepthFormat();
@@ -176,17 +177,14 @@ void APP::recreateSwapChain()
     }
     else
     {
-        swapChain = std::make_shared<vk::SwapChain>(device, extent, swapChain);
+        swapChain = std::make_shared<vk::SwapChain>(device, extent, std::move(swapChain));
+    }
+    if (swapChain->imageCount() != commandBuffers.size())
+    {
+        freeCommandBuffers();
+        createCommandBuffers();
     }
     createPipeline();
-    freeCommandBuffers();
-    createCommandBuffers();
-}
-
-void APP::framebufferResizeCallback(GLFWwindow* window, int width, int height)
-{
-    auto app                = reinterpret_cast<APP*>(glfwGetWindowUserPointer(window));
-    app->framebufferResized = true;
 }
 
 void APP::createCommandBuffers()
@@ -345,10 +343,11 @@ void APP::drawFrame()
     }
 
     result = swapChain->submitCommandBuffers(&commandBuffers[imageIndex], &imageIndex);
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized)
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || window.wasWindowResized())
     {
-        framebufferResized = false;
+        window.resetWindowResizedFlag();
         recreateSwapChain();
+        return;
     }
     else if (result != VK_SUCCESS)
     {

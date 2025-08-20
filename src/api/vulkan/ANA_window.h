@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include <string>
 #include <vulkan/vulkan_core.h>
 #define GLFW_INCLUDE_VULKAN
@@ -31,12 +32,25 @@ public:
         return window;
     }
 
+    bool wasWindowResized()
+    {
+        return framebufferResized;
+    }
+
+    void resetWindowResizedFlag()
+    {
+        framebufferResized = false;
+    }
+
+    static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
+
 private:
     void initWindow();
     GLFWwindow* window;
     int width;
     int height;
     std::string windowName;
+    bool framebufferResized = false;
 };
 
 } // namespace ana

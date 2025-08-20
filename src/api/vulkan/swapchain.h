@@ -21,6 +21,7 @@ public:
 
     SwapChain(const SwapChain&)      = delete;
     void operator=(const SwapChain&) = delete;
+    SwapChain& operator=(SwapChain&) = delete;
 
     VkImageView getImageView(int index)
     {
@@ -73,6 +74,7 @@ public:
     VkResult submitCommandBuffers(const VkCommandBuffer* buffers, uint32_t* imageIndex);
 
 private:
+    void init();
     void createSwapChain();
     void createImageViews();
     void createDepthResources();

@@ -26,6 +26,8 @@ void ANAwindow::initWindow()
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
     window = glfwCreateWindow(width, height, windowName.c_str(), nullptr, nullptr);
+    glfwSetWindowUserPointer(getGLFWwindow(), this);
+    glfwSetFramebufferSizeCallback(getGLFWwindow(), framebufferResizeCallback);
 }
 
 void ANAwindow::createWindowSurface(VkInstance instance, VkSurfaceKHR* surface)
@@ -34,5 +36,13 @@ void ANAwindow::createWindowSurface(VkInstance instance, VkSurfaceKHR* surface)
     {
         throw std::runtime_error("failed to create window surface!");
     }
+}
+
+void ANAwindow::framebufferResizeCallback(GLFWwindow* window, int width, int height)
+{
+    auto anaWindow                = reinterpret_cast<ANAwindow*>(glfwGetWindowUserPointer(window));
+    anaWindow->framebufferResized = true;
+    anaWindow->width              = width;
+    anaWindow->height             = height;
 }
 } // namespace ana

@@ -29,12 +29,12 @@ ana::vk::SwapChain::SwapChain(vk::Device& deviceRef, VkExtent2D extent, std::sha
     , windowExtent{ extent }
     , oldSwapChain{ previous }
 {
-    createSwapChain();
-    max_frames_in_flight = imageCount();
-    createImageViews();
-    createDepthResources();
-    createSyncObjects();
-
+    // createSwapChain();
+    // // max_frames_in_flight = imageCount();
+    // createImageViews();
+    // createDepthResources();
+    // createSyncObjects();
+    init();
     // clean up old swap chain
     previous = nullptr;
 }
@@ -67,6 +67,15 @@ SwapChain::~SwapChain()
         vkDestroySemaphore(device.device(), imageAvailableSemaphores[i], nullptr);
         vkDestroyFence(device.device(), inFlightFences[i], nullptr);
     }
+}
+
+void SwapChain::init()
+{
+    createSwapChain();
+    max_frames_in_flight = imageCount();
+    createImageViews();
+    createDepthResources();
+    createSyncObjects();
 }
 
 VkResult SwapChain::acquireNextImage(uint32_t* imageIndex)
