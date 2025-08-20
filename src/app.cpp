@@ -3,6 +3,7 @@
 #include "api/vulkan/model.h"
 #include <array>
 #include <cstdint>
+#include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <utility>
@@ -18,8 +19,20 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_vulkan.h"
 
+#include "glm/fwd.hpp"
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/glm.hpp>
+
 namespace ana
 {
+
+struct SimplePushConstantData
+{
+    glm::vec2 offset;
+    alignas(16) glm::vec3 color;
+};
+
 APP::APP()
 {
     loadModel();
@@ -38,6 +51,8 @@ APP::~APP()
 
 void APP::run()
 {
+    std::cout << "maxPushConstantSize= " << device.properties.limits.maxPushConstantsSize << std::endl;
+
     while (!window.shouldClose())
     {
         glfwPollEvents();
@@ -130,12 +145,17 @@ void APP::renderImGui(VkCommandBuffer commandBuffer)
 
 void APP::createPipelineLayout()
 {
+    VkPushConstantRange pushConstantRange{};
+    pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+    pushConstantRange.offset     = 0;
+    pushConstantRange.size       = sizeof(SimplePushConstantData);
+
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutInfo.setLayoutCount         = 0;
     pipelineLayoutInfo.pSetLayouts            = nullptr;
-    pipelineLayoutInfo.pushConstantRangeCount = 0;
-    pipelineLayoutInfo.pPushConstantRanges    = nullptr;
+    pipelineLayoutInfo.pushConstantRangeCount = 1;
+    pipelineLayoutInfo.pPushConstantRanges    = &pushConstantRange;
     if (vkCreatePipelineLayout(device.device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to create pipeline layout!");
@@ -252,6 +272,8 @@ void APP::drawFrame()
     {
         throw std::runtime_error("failed to acquire swap chain image!");
     }
+    static int frame = 0;
+    frame            = (frame + 1) % 100;
 
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -287,7 +309,7 @@ void APP::drawFrame()
     colorAttachmentInfo.imageLayout      = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     colorAttachmentInfo.loadOp           = VK_ATTACHMENT_LOAD_OP_CLEAR;
     colorAttachmentInfo.storeOp          = VK_ATTACHMENT_STORE_OP_STORE;
-    colorAttachmentInfo.clearValue.color = { 0.1f, 0.1f, 0.1f, 1.0f };
+    colorAttachmentInfo.clearValue.color = { 0.01f, 0.01f, 0.01f, 1.0f };
 
     VkRenderingAttachmentInfo depthAttachmentInfo{};
     depthAttachmentInfo.sType                   = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
@@ -326,7 +348,18 @@ void APP::drawFrame()
     anaPipeline->bind(commandBuffers[imageIndex]);
 
     model->bind(commandBuffers[imageIndex]);
-    model->draw(commandBuffers[imageIndex]);
+    // model->draw(commandBuffers[imageIndex]);
+
+    for (int j = 0; j < 4; j++)
+    {
+        SimplePushConstantData push{};
+        push.color  = { -0.5f * frame * 0.0005, 0.9f, 0.2f * j };
+        push.offset = { 0.1f * frame * 0.0005 * j, 0.1f * j };
+        vkCmdPushConstants(commandBuffers[imageIndex], pipelineLayout,
+                           VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(SimplePushConstantData),
+                           &push);
+        model->draw(commandBuffers[imageIndex]);
+    }
 
     // vkCmdDraw(commandBuffers[imageIndex], 3, 1, 0, 0);
 
