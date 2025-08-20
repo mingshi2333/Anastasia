@@ -1,13 +1,12 @@
 #pragma once
 
+#include "api/gameobject.h"
 #include "api/pipeline.h"
 #include "api/vulkan/ANA_window.h"
 #include "api/vulkan/device.h"
-#include "api/vulkan/model.h"
 #include "api/vulkan/swapchain.h"
 #include <memory>
 #include <vulkan/vulkan_core.h>
-
 // Forward declarations for ImGui
 struct ImGuiContext;
 
@@ -30,19 +29,21 @@ public:
 
 private:
     void sierpinski(std::vector<Model::Vertex>& vertices, int depth, glm::vec2 left, glm::vec2 right, glm::vec2 top);
-    void loadModel();
+    // void loadModel();
+    void loadGameObjects();
     void createPipelineLayout();
     void createPipeline();
     void createCommandBuffers();
     void freeCommandBuffers();
     void drawFrame();
     void recreateSwapChain();
+    void recordCommandBuffer(int imageIndex);
 
     void initImGui();
     void renderImGui(VkCommandBuffer commandBuffer);
     void shutdownImGui();
 
-    void framebufferResize(int width, int height);
+    void renderGameObject(VkCommandBuffer commandBuffer);
 
     ANAwindow window{ WIDTH, HEIGHT, "Vulkan" };
     vk::Device device{ window };
@@ -53,6 +54,6 @@ private:
     std::vector<VkCommandBuffer> commandBuffers;
 
     VkDescriptorPool imguiPool = VK_NULL_HANDLE;
-    std::unique_ptr<Model> model;
+    std::vector<GameObject> gameObjects;
 };
 } // namespace ana

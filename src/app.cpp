@@ -1,6 +1,8 @@
 #include "app.h"
+#include "api/gameobject.h"
 #include "api/pipeline.h"
 #include "api/vulkan/model.h"
+#include "glm/common.hpp"
 #include <array>
 #include <cstdint>
 #include <iostream>
@@ -23,19 +25,22 @@
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
+#include <glm/gtc/constants.hpp>
 
 namespace ana
 {
 
 struct SimplePushConstantData
 {
+    glm::mat2 transform{ 1.f };
     glm::vec2 offset;
     alignas(16) glm::vec3 color;
 };
 
 APP::APP()
 {
-    loadModel();
+    // loadModel();
+    loadGameObjects();
     createPipelineLayout();
     recreateSwapChain();
     initImGui();
@@ -210,71 +215,8 @@ void APP::recreateSwapChain()
     createPipeline();
 }
 
-void APP::createCommandBuffers()
+void APP::recordCommandBuffer(int imageIndex)
 {
-
-    // commnandBuffers.resize(swapChain->imageCount());
-
-    commandBuffers.resize(swapChain->imageCount());
-    VkCommandBufferAllocateInfo allocInfo{};
-    allocInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandPool        = device.getCommandPool();
-    allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
-    if (vkAllocateCommandBuffers(device.device(), &allocInfo, commandBuffers.data()) != VK_SUCCESS)
-    {
-        throw std::runtime_error("failed to allocate command buffers!");
-    }
-}
-
-void APP::sierpinski(std::vector<Model::Vertex>& vertices, int depth, glm::vec2 left, glm::vec2 right, glm::vec2 top)
-{
-    if (depth <= 0)
-    {
-        vertices.push_back({ top });
-        vertices.push_back({ right });
-        vertices.push_back({ left });
-    }
-    else
-    {
-        auto leftTop   = 0.5f * (left + top);
-        auto rightTop  = 0.5f * (right + top);
-        auto leftRight = 0.5f * (left + right);
-        sierpinski(vertices, depth - 1, left, leftRight, leftTop);
-        sierpinski(vertices, depth - 1, leftRight, right, rightTop);
-        sierpinski(vertices, depth - 1, leftTop, rightTop, top);
-    }
-}
-
-void APP::loadModel()
-{
-    std::vector<Model::Vertex> vertices{
-        { { 0.0f, -0.5f }, { 1.0f, 0.0f, 0.0f } },
-        { { 0.5f, 0.5f },  { 0.0f, 1.0f, 0.0f } },
-        { { -0.5f, 0.5f }, { 0.0f, 0.0f, 1.0f } }
-    };
-    // sierpinski(vertices, 5, { -0.5f, 0.5f }, { 0.5f, 0.5f }, { 0.0f, -0.5f });
-    model = std::make_unique<ana::Model>(device, vertices);
-}
-
-void APP::drawFrame()
-{
-    uint32_t imageIndex;
-    auto result = swapChain->acquireNextImage(&imageIndex);
-
-    if (result == VK_ERROR_OUT_OF_DATE_KHR)
-    {
-        recreateSwapChain();
-        return;
-    }
-
-    if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
-    {
-        throw std::runtime_error("failed to acquire swap chain image!");
-    }
-    static int frame = 0;
-    frame            = (frame + 1) % 100;
-
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     if (vkBeginCommandBuffer(commandBuffers[imageIndex], &beginInfo) != VK_SUCCESS)
@@ -347,21 +289,23 @@ void APP::drawFrame()
 
     anaPipeline->bind(commandBuffers[imageIndex]);
 
-    model->bind(commandBuffers[imageIndex]);
-    // model->draw(commandBuffers[imageIndex]);
+    // model->bind(commandBuffers[imageIndex]);
+    // // model->draw(commandBuffers[imageIndex]);
 
-    for (int j = 0; j < 4; j++)
-    {
-        SimplePushConstantData push{};
-        push.color  = { -0.5f * frame * 0.0005, 0.9f, 0.2f * j };
-        push.offset = { 0.1f * frame * 0.0005 * j, 0.1f * j };
-        vkCmdPushConstants(commandBuffers[imageIndex], pipelineLayout,
-                           VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(SimplePushConstantData),
-                           &push);
-        model->draw(commandBuffers[imageIndex]);
-    }
+    // for (int j = 0; j < 4; j++)
+    // {
+    //     SimplePushConstantData push{};
+    //     push.color  = { -0.5f * frame * 0.0005, 0.9f, 0.2f * j };
+    //     push.offset = { 0.1f * frame * 0.0005 * j, 0.1f * j };
+    //     vkCmdPushConstants(commandBuffers[imageIndex], pipelineLayout,
+    //                        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(SimplePushConstantData),
+    //                        &push);
+    //     model->draw(commandBuffers[imageIndex]);
+    // }
 
     // vkCmdDraw(commandBuffers[imageIndex], 3, 1, 0, 0);
+
+    renderGameObject(commandBuffers[imageIndex]);
 
     renderImGui(commandBuffers[imageIndex]);
 
@@ -386,6 +330,98 @@ void APP::drawFrame()
     vkCmdPipelineBarrier(commandBuffers[imageIndex], VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
                          VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1,
                          &imageMemoryBarrier_to_present);
+}
+
+void APP::createCommandBuffers()
+{
+
+    // commnandBuffers.resize(swapChain->imageCount());
+
+    commandBuffers.resize(swapChain->imageCount());
+    VkCommandBufferAllocateInfo allocInfo{};
+    allocInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandPool        = device.getCommandPool();
+    allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
+    if (vkAllocateCommandBuffers(device.device(), &allocInfo, commandBuffers.data()) != VK_SUCCESS)
+    {
+        throw std::runtime_error("failed to allocate command buffers!");
+    }
+}
+
+void APP::sierpinski(std::vector<Model::Vertex>& vertices, int depth, glm::vec2 left, glm::vec2 right, glm::vec2 top)
+{
+    if (depth <= 0)
+    {
+        vertices.push_back({ top });
+        vertices.push_back({ right });
+        vertices.push_back({ left });
+    }
+    else
+    {
+        auto leftTop   = 0.5f * (left + top);
+        auto rightTop  = 0.5f * (right + top);
+        auto leftRight = 0.5f * (left + right);
+        sierpinski(vertices, depth - 1, left, leftRight, leftTop);
+        sierpinski(vertices, depth - 1, leftRight, right, rightTop);
+        sierpinski(vertices, depth - 1, leftTop, rightTop, top);
+    }
+}
+
+void APP::loadGameObjects()
+{
+    std::vector<Model::Vertex> vertices{
+        { { 0.0f, -0.5f }, { 1.0f, 0.0f, 0.0f } },
+        { { 0.5f, 0.5f },  { 0.0f, 1.0f, 0.0f } },
+        { { -0.5f, 0.5f }, { 0.0f, 0.0f, 1.0f } }
+    };
+    // sierpinski(vertices, 5, { -0.5f, 0.5f }, { 0.5f, 0.5f }, { 0.0f, -0.5f });
+    auto model     = std::make_shared<ana::Model>(device, vertices);
+    auto triangle  = GameObject::createGameObject();
+    triangle.model = model;
+    triangle.color = { .1f, .8f, .1f };
+    // triangle.transform2d.translation.x = .2f;
+    triangle.transform2d.scale    = { 2.f, .5f };
+    triangle.transform2d.rotation = .25f * glm::two_pi<float>();
+    gameObjects.push_back(std::move(triangle));
+}
+
+void APP::renderGameObject(VkCommandBuffer commandBuffer)
+{
+    anaPipeline->bind(commandBuffer);
+    for (auto& obj : gameObjects)
+    {
+        obj.transform2d.rotation = glm::mod(obj.transform2d.rotation + 0.01f, glm::two_pi<float>());
+        SimplePushConstantData push{};
+        push.offset    = obj.transform2d.translation;
+        push.color     = obj.color;
+        push.transform = obj.transform2d.mat2();
+
+        vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0,
+                           sizeof(SimplePushConstantData), &push);
+
+        obj.model->bind(commandBuffer);
+        obj.model->draw(commandBuffer);
+    }
+}
+
+void APP::drawFrame()
+{
+    uint32_t imageIndex;
+    auto result = swapChain->acquireNextImage(&imageIndex);
+
+    if (result == VK_ERROR_OUT_OF_DATE_KHR)
+    {
+        recreateSwapChain();
+        return;
+    }
+
+    if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+    {
+        throw std::runtime_error("failed to acquire swap chain image!");
+    }
+
+    recordCommandBuffer(imageIndex);
 
     if (vkEndCommandBuffer(commandBuffers[imageIndex]) != VK_SUCCESS)
     {

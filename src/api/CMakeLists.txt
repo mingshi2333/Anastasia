@@ -1,7 +1,7 @@
 # API module CMakeLists.txt
 
 # Collect all source files in this directory
-file(GLOB API_VULKAN_SRC "*.cpp")
+file(GLOB API_VULKAN_SRC "*.cpp" ,"*.h")
 
 set(TARGET api)
 
