@@ -1,5 +1,4 @@
 #pragma once
-#include <memory>
 #include <string>
 #include <vulkan/vulkan_core.h>
 #define GLFW_INCLUDE_VULKAN

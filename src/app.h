@@ -4,6 +4,7 @@
 #include "api/pipeline.h"
 #include "api/vulkan/ANA_window.h"
 #include "api/vulkan/device.h"
+#include "api/vulkan/renderer.h"
 #include "api/vulkan/swapchain.h"
 #include <memory>
 #include <vulkan/vulkan_core.h>
@@ -33,27 +34,22 @@ private:
     void loadGameObjects();
     void createPipelineLayout();
     void createPipeline();
-    void createCommandBuffers();
-    void freeCommandBuffers();
-    void drawFrame();
-    void recreateSwapChain();
-    void recordCommandBuffer(int imageIndex);
-
-    void initImGui();
-    void renderImGui(VkCommandBuffer commandBuffer);
-    void shutdownImGui();
+    //TODO: imgui
+    // void initImGui();
+    // void renderImGui(VkCommandBuffer commandBuffer);
+    // void shutdownImGui();
 
     void renderGameObject(VkCommandBuffer commandBuffer);
 
     ANAwindow window{ WIDTH, HEIGHT, "Vulkan" };
     vk::Device device{ window };
-    std::shared_ptr<vk::SwapChain> swapChain;
-
+    // std::shared_ptr<vk::SwapChain> swapChain;
+    Renderer renderer{ window, device };
     std::unique_ptr<vk::ANAPipeline> anaPipeline;
     VkPipelineLayout pipelineLayout;
-    std::vector<VkCommandBuffer> commandBuffers;
+    // std::vector<VkCommandBuffer> commandBuffers;
 
-    VkDescriptorPool imguiPool = VK_NULL_HANDLE;
+    // VkDescriptorPool imguiPool = VK_NULL_HANDLE;
     std::vector<GameObject> gameObjects;
 };
 } // namespace ana

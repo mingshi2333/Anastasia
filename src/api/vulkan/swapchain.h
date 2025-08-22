@@ -6,8 +6,11 @@
 #include <vulkan/vulkan.h>
 
 // std lib headers
+#include <iostream>
+#include <limits>
 #include <memory>
 #include <vector>
+#include <vulkan/vulkan_core.h>
 
 namespace ana::vk
 {
@@ -53,6 +56,16 @@ public:
         return swapChainExtent;
     }
 
+    VkRenderPass getSwapChainRendererPass()
+    {
+        return swapChainRendererPass;
+    }
+
+    VkFramebuffer getFrameBuffer(int index)
+    {
+        return swapChainFramebuffers[index];
+    }
+
     uint32_t width()
     {
         return swapChainExtent.width;
@@ -88,7 +101,8 @@ private:
 
     VkFormat swapChainImageFormat;
     VkExtent2D swapChainExtent;
-
+    std::vector<VkFramebuffer> swapChainFramebuffers;
+    VkRenderPass swapChainRendererPass;
     std::vector<VkImage> depthImages;
     std::vector<VkDeviceMemory> depthImageMemorys;
     std::vector<VkImageView> depthImageViews;
