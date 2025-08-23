@@ -170,13 +170,13 @@ void vk::Device::createLogicalDevice()
     deviceFeatures.samplerAnisotropy        = VK_TRUE;
 
     VkPhysicalDeviceDynamicRenderingFeatures dynamicRenderingFeatures{};
-    dynamicRenderingFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES;
+    dynamicRenderingFeatures.sType            = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES;
     dynamicRenderingFeatures.dynamicRendering = VK_TRUE;
 
     VkPhysicalDeviceFeatures2 deviceFeatures2{};
-    deviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+    deviceFeatures2.sType    = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
     deviceFeatures2.features = deviceFeatures;
-    deviceFeatures2.pNext = &dynamicRenderingFeatures;
+    deviceFeatures2.pNext    = &dynamicRenderingFeatures;
 
     VkDeviceCreateInfo createInfo = {};
     createInfo.sType              = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;

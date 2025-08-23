@@ -119,11 +119,19 @@ void ANAPipeline::createGraphicsPipeline(const std::string& vertFilepath, const 
     pipelineInfo.renderPass = VK_NULL_HANDLE;
 
     VkPipelineRenderingCreateInfo renderingCreateInfo{};
-    renderingCreateInfo.sType                   = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
-    renderingCreateInfo.colorAttachmentCount    = 1;
-    renderingCreateInfo.pColorAttachmentFormats = &configInfo.colorAttachmentFormat;
+    renderingCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
+    if (configInfo.colorAttachmentFormat != VK_FORMAT_UNDEFINED)
+    {
+        renderingCreateInfo.colorAttachmentCount    = 1;
+        renderingCreateInfo.pColorAttachmentFormats = &configInfo.colorAttachmentFormat;
+    }
+    else
+    {
+        renderingCreateInfo.colorAttachmentCount    = 0;
+        renderingCreateInfo.pColorAttachmentFormats = nullptr;
+    }
     renderingCreateInfo.depthAttachmentFormat   = configInfo.depthAttachmentFormat;
-    renderingCreateInfo.stencilAttachmentFormat = VK_FORMAT_UNDEFINED;
+    renderingCreateInfo.stencilAttachmentFormat = VK_FORMAT_UNDEFINED; // Stencil not used
 
     pipelineInfo.pNext   = &renderingCreateInfo;
     pipelineInfo.subpass = 0;
