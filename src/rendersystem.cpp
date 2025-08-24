@@ -59,7 +59,7 @@ void RenderSystem::createPipeline(VkFormat colorFormat, VkFormat depthFormat)
     assert(pipelineLayout != nullptr && "Cannot create pipeline before pipeline layout");
     ana::vk::PipelineConfigInfo pipelineConfig{};
     vk::ANAPipeline::defaultPipelineConfigInfo(pipelineConfig);
-    pipelineConfig.pipelineLayout       = pipelineLayout;
+    pipelineConfig.pipelineLayout        = pipelineLayout;
     pipelineConfig.colorAttachmentFormat = colorFormat;
     pipelineConfig.depthAttachmentFormat = depthFormat;
     anaPipeline = std::make_unique<vk::ANAPipeline>(device, "shaders/vert.spv", "shaders/frag.spv", pipelineConfig);
