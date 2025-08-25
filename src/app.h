@@ -10,8 +10,8 @@
 #include <memory>
 #include <vector>
 #include <vulkan/vulkan_core.h>
+
 // Forward declarations for ImGui
-struct ImGuiContext;
 
 namespace ana
 {

@@ -1,4 +1,6 @@
 #include "renderer.h"
+#include "swapchain.h"
+#include <stdexcept>
 
 // #include "ANA_window.h"
 // #include "device.h"
@@ -40,7 +42,6 @@ Renderer::Renderer(ANAwindow& window, vk::Device& device)
 {
     recreateSwapChain();
     // initImGui();
-    createCommandBuffers();
 }
 
 Renderer::~Renderer()
@@ -132,9 +133,12 @@ Renderer::~Renderer()
 
 void Renderer::freeCommandBuffers()
 {
-    vkFreeCommandBuffers(device.device(), device.getCommandPool(), static_cast<uint32_t>(commandBuffers.size()),
-                         commandBuffers.data());
-    commandBuffers.clear();
+    if (!commandBuffers.empty())
+    {
+        vkFreeCommandBuffers(device.device(), device.getCommandPool(), static_cast<uint32_t>(commandBuffers.size()),
+                             commandBuffers.data());
+        commandBuffers.clear();
+    }
 }
 
 void Renderer::recreateSwapChain()
@@ -154,7 +158,13 @@ void Renderer::recreateSwapChain()
     }
     else
     {
-        swapChain = std::make_shared<vk::SwapChain>(device, extent, std::move(swapChain));
+        std::shared_ptr<vk::SwapChain> oldSwapChain = std::move(swapChain);
+        swapChain                                   = std::make_shared<vk::SwapChain>(device, extent, oldSwapChain);
+
+        if (!oldSwapChain->compareSwapFormats(*swapChain.get()))
+        {
+            throw std::runtime_error("Swap chain image(or depth) format has changed!");
+        }
     }
     if (swapChain->imageCount() != commandBuffers.size())
     {
@@ -166,10 +176,7 @@ void Renderer::recreateSwapChain()
 
 void Renderer::createCommandBuffers()
 {
-
-    // commnandBuffers.resize(swapChain->imageCount());
-
-    commandBuffers.resize(swapChain->imageCount());
+    commandBuffers.resize(vk::SwapChain::MAX_FRAMES_IN_FLIGHT);
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -197,7 +204,7 @@ VkCommandBuffer Renderer::beginFrame()
         throw std::runtime_error("failed to acquire swap chain image!");
     }
     isFrameStarted     = true;
-    auto commandBuffer = commandBuffers[currentImageIndex];
+    auto commandBuffer = getCurrentCommandBuffer();
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
@@ -210,7 +217,7 @@ VkCommandBuffer Renderer::beginFrame()
 void Renderer::endFrame()
 {
     assert(isFrameStarted && "can't call endFrame while frame is not in progress");
-    auto commandBuffer = commandBuffers[currentImageIndex];
+    auto commandBuffer = getCurrentCommandBuffer();
     if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to record command buffer!");
@@ -225,7 +232,8 @@ void Renderer::endFrame()
     {
         throw std::runtime_error("failed to present swap chain image!");
     }
-    isFrameStarted = false;
+    isFrameStarted    = false;
+    currentFrameIndex = (currentFrameIndex + 1) % vk::SwapChain::MAX_FRAMES_IN_FLIGHT;
 }
 
 void Renderer::beginSwapChainRendererPass(VkCommandBuffer commandBuffer)
@@ -248,7 +256,7 @@ void Renderer::beginSwapChainRendererPass(VkCommandBuffer commandBuffer)
     imageMemoryBarrier_to_color.subresourceRange.baseArrayLayer = 0;
     imageMemoryBarrier_to_color.subresourceRange.layerCount     = 1;
 
-    vkCmdPipelineBarrier(commandBuffers[currentImageIndex], VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+    vkCmdPipelineBarrier(getCurrentCommandBuffer(), VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
                          VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0, nullptr, 1,
                          &imageMemoryBarrier_to_color);
 

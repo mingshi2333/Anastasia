@@ -173,6 +173,11 @@ void vk::Device::createLogicalDevice()
     dynamicRenderingFeatures.sType            = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES;
     dynamicRenderingFeatures.dynamicRendering = VK_TRUE;
 
+    VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT swapchainMaintenance1Features{};
+    swapchainMaintenance1Features.sType                 = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SWAPCHAIN_MAINTENANCE_1_FEATURES_EXT;
+    swapchainMaintenance1Features.swapchainMaintenance1 = VK_TRUE;
+    dynamicRenderingFeatures.pNext                      = &swapchainMaintenance1Features;
+
     VkPhysicalDeviceFeatures2 deviceFeatures2{};
     deviceFeatures2.sType    = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
     deviceFeatures2.features = deviceFeatures;
@@ -245,6 +250,15 @@ bool vk::Device::isDeviceSuitable(VkPhysicalDevice device)
 
     VkPhysicalDeviceFeatures supportedFeatures;
     vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
+
+    VkPhysicalDeviceProperties deviceProperties;
+    vkGetPhysicalDeviceProperties(device, &deviceProperties);
+
+    std::cout << "Device: " << deviceProperties.deviceName << std::endl;
+    std::cout << "  Queue families complete: " << indices.isComplete() << std::endl;
+    std::cout << "  Extensions supported: " << extensionsSupported << std::endl;
+    std::cout << "  Swap chain adequate: " << swapChainAdequate << std::endl;
+    std::cout << "  Sampler anisotropy supported: " << supportedFeatures.samplerAnisotropy << std::endl;
 
     return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
 }

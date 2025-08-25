@@ -62,7 +62,7 @@ void RenderSystem::createPipeline(VkFormat colorFormat, VkFormat depthFormat)
     pipelineConfig.pipelineLayout        = pipelineLayout;
     pipelineConfig.colorAttachmentFormat = colorFormat;
     pipelineConfig.depthAttachmentFormat = depthFormat;
-    anaPipeline = std::make_unique<vk::ANAPipeline>(device, "shaders/vert.spv", "shaders/frag.spv", pipelineConfig);
+    anaPipeline = std::make_unique<vk::ANAPipeline>(device, "../shaders/vert.spv", "../shaders/frag.spv", pipelineConfig);
 }
 
 void RenderSystem::renderGameObjects(VkCommandBuffer commandBuffer, std::vector<GameObject>& gameObjects)

@@ -8,7 +8,6 @@ ana::vk::SwapChain::SwapChain(vk::Device& deviceRef, VkExtent2D extent)
     , windowExtent{ extent }
 {
     createSwapChain();
-    max_frames_in_flight = imageCount();
     createImageViews();
     createDepthResources();
     createSyncObjects();
@@ -51,7 +50,7 @@ SwapChain::~SwapChain()
     }
 
     // cleanup synchronization objects
-    for (size_t i = 0; i < max_frames_in_flight; i++)
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
     {
         vkDestroySemaphore(device.device(), renderFinishedSemaphores[i], nullptr);
         vkDestroySemaphore(device.device(), imageAvailableSemaphores[i], nullptr);
@@ -62,7 +61,6 @@ SwapChain::~SwapChain()
 void SwapChain::init()
 {
     createSwapChain();
-    max_frames_in_flight = imageCount();
     createImageViews();
     createDepthResources();
     createSyncObjects();
@@ -123,7 +121,7 @@ VkResult SwapChain::submitCommandBuffers(const VkCommandBuffer* buffers, uint32_
 
     auto result = vkQueuePresentKHR(device.presentQueue(), &presentInfo);
 
-    currentFrame = (currentFrame + 1) % max_frames_in_flight;
+    currentFrame = (currentFrame + 1) % imageCount();
 
     return result;
 }
@@ -220,6 +218,7 @@ void SwapChain::createImageViews()
 void SwapChain::createDepthResources()
 {
     VkFormat depthFormat       = findDepthFormat();
+    swapChainDepthFormat       = depthFormat;
     VkExtent2D swapChainExtent = getSwapChainExtent();
 
     depthImages.resize(imageCount());
@@ -267,9 +266,9 @@ void SwapChain::createDepthResources()
 
 void SwapChain::createSyncObjects()
 {
-    imageAvailableSemaphores.resize(max_frames_in_flight);
-    renderFinishedSemaphores.resize(max_frames_in_flight);
-    inFlightFences.resize(max_frames_in_flight);
+    imageAvailableSemaphores.resize(imageCount());
+    renderFinishedSemaphores.resize(imageCount());
+    inFlightFences.resize(imageCount());
     imagesInFlight.resize(imageCount(), VK_NULL_HANDLE);
 
     VkSemaphoreCreateInfo semaphoreInfo = {};
@@ -279,7 +278,7 @@ void SwapChain::createSyncObjects()
     fenceInfo.sType             = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceInfo.flags             = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    for (size_t i = 0; i < max_frames_in_flight; i++)
+    for (size_t i = 0; i < imageCount(); i++)
     {
         if (vkCreateSemaphore(device.device(), &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
             vkCreateSemaphore(device.device(), &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||

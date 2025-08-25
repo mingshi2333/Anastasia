@@ -36,8 +36,8 @@ public:
 
     VkCommandBuffer getCurrentCommandBuffer() const
     {
-        assert(isFrameStarted && "Cannot get commnad buffer whe nframe not in progress");
-        return commandBuffers[currentImageIndex];
+        assert(isFrameStarted && "Cannot get command buffer when frame is not in progress");
+        return commandBuffers[currentFrameIndex];
     }
 
     VkRenderPass getSwapChainRendererPass() const
@@ -53,6 +53,12 @@ public:
     VkFormat getSwapChainDepthFormat() const
     {
         return swapChain->findDepthFormat();
+    }
+
+    uint32_t getFrameIndex() const
+    {
+        assert(isFrameStarted && "can't call getFrameIndex when frame is not in progress");
+        return currentFrameIndex;
     }
 
     VkCommandBuffer beginFrame();
@@ -77,7 +83,8 @@ private:
     std::shared_ptr<vk::SwapChain> swapChain;
     std::vector<VkCommandBuffer> commandBuffers;
 
-    uint32_t currentImageIndex;
+    uint32_t currentImageIndex{ 0 };
+    uint32_t currentFrameIndex{ 0 };
     bool isFrameStarted{ false };
 
     VkDescriptorPool imguiPool = VK_NULL_HANDLE;

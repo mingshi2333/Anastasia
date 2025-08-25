@@ -43,13 +43,12 @@ APP::~APP()
 
 void APP::run()
 {
-    RenderSystem rendersystem{ device, renderer.getSwapChainRendererPass() };
+    RenderSystem rendersystem{ device, renderer.getSwapChainImageFormat(), renderer.getSwapChainDepthFormat() };
     std::cout << "maxPushConstantSize= " << device.properties.limits.maxPushConstantsSize << std::endl;
 
     while (!window.shouldClose())
     {
         glfwPollEvents();
-        // drawFrame();
         if (auto commandBuffer = renderer.beginFrame())
         {
             renderer.beginSwapChainRendererPass(commandBuffer);

@@ -3,6 +3,7 @@
 #include "device.h"
 
 // vulkan headers
+#include <fcntl.h>
 #include <vulkan/vulkan.h>
 
 // std lib headers
@@ -15,9 +16,17 @@
 namespace ana::vk
 {
 
+struct DynamicRenderingFotmat
+{
+    VkFormat colorAttachment;
+    VkFormat depthAttachment;
+};
+
 class SwapChain
 {
 public:
+    static constexpr size_t MAX_FRAMES_IN_FLIGHT = 2;
+
     SwapChain(vk::Device& deviceRef, VkExtent2D windowExtent);
     SwapChain(vk::Device& deviceRef, VkExtent2D windowExtent, std::shared_ptr<SwapChain> previous);
     ~SwapChain();
@@ -86,6 +95,12 @@ public:
     VkResult acquireNextImage(uint32_t* imageIndex);
     VkResult submitCommandBuffers(const VkCommandBuffer* buffers, uint32_t* imageIndex);
 
+    bool compareSwapFormats(const SwapChain& swapChain) const
+    {
+        return swapChain.swapChainDepthFormat == swapChainDepthFormat &&
+               swapChain.swapChainImageFormat == swapChainImageFormat;
+    }
+
 private:
     void init();
     void createSwapChain();
@@ -100,6 +115,7 @@ private:
     VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
     VkFormat swapChainImageFormat;
+    VkFormat swapChainDepthFormat;
     VkExtent2D swapChainExtent;
     std::vector<VkFramebuffer> swapChainFramebuffers;
     VkRenderPass swapChainRendererPass;
@@ -115,7 +131,6 @@ private:
     VkSwapchainKHR swapChain;
     std::shared_ptr<SwapChain> oldSwapChain;
 
-    size_t max_frames_in_flight;
     std::vector<VkSemaphore> imageAvailableSemaphores;
     std::vector<VkSemaphore> renderFinishedSemaphores;
     std::vector<VkFence> inFlightFences;
