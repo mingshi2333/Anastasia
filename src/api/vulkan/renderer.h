@@ -83,7 +83,7 @@ private:
     std::shared_ptr<vk::SwapChain> swapChain;
     std::vector<VkCommandBuffer> commandBuffers;
 
-    uint32_t currentImageIndex{ 0 };
+    uint32_t currentImageIndex;
     uint32_t currentFrameIndex{ 0 };
     bool isFrameStarted{ false };
 
