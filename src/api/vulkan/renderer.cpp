@@ -41,6 +41,8 @@ Renderer::Renderer(ANAwindow& window, vk::Device& device)
     , device{ device }
 {
     recreateSwapChain();
+    // Allocate per-frame-in-flight command buffers once
+    createCommandBuffers();
     // initImGui();
 }
 
@@ -48,88 +50,6 @@ Renderer::~Renderer()
 {
     freeCommandBuffers();
 }
-
-// void Renderer::initImGui()
-// {
-//     // 1: create descriptor pool for IMGUI
-//     //  the size of the pool is very oversize, but it's copied from official example and should be OK
-//     VkDescriptorPoolSize pool_sizes[] = {
-//         { VK_DESCRIPTOR_TYPE_SAMPLER,                1000 },
-//         { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
-//         { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,          1000 },
-//         { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,          1000 },
-//         { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER,   1000 },
-//         { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER,   1000 },
-//         { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,         1000 },
-//         { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,         1000 },
-//         { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
-//         { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
-//         { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,       1000 }
-//     };
-
-//     VkDescriptorPoolCreateInfo pool_info = {};
-//     pool_info.sType                      = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-//     pool_info.flags                      = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-//     pool_info.maxSets                    = 1000;
-//     pool_info.poolSizeCount              = std::size(pool_sizes);
-//     pool_info.pPoolSizes                 = pool_sizes;
-
-//     if (vkCreateDescriptorPool(device.device(), &pool_info, nullptr, &imguiPool) != VK_SUCCESS)
-//     {
-//         throw std::runtime_error("failed to create imgui descriptor pool");
-//     }
-
-//     // 2: initialize imgui library
-//     // this initializes the core structures of imgui
-//     ImGui::CreateContext();
-
-//     // this initializes imgui for GLFW
-//     ImGui_ImplGlfw_InitForVulkan(window.getGLFWwindow(), true);
-
-//     // this initializes imgui for Vulkan
-//     ImGui_ImplVulkan_InitInfo init_info = {};
-//     init_info.Instance                  = device.getInstance();
-//     init_info.PhysicalDevice            = device.getPhysicalDevice();
-//     init_info.Device                    = device.device();
-//     init_info.Queue                     = device.graphicsQueue();
-//     init_info.DescriptorPool            = imguiPool;
-//     init_info.MinImageCount             = swapChain->imageCount();
-//     init_info.ImageCount                = swapChain->imageCount();
-//     init_info.MSAASamples               = VK_SAMPLE_COUNT_1_BIT;
-//     init_info.RendererPass                = VK_NULL_HANDLE;
-//     init_info.UseDynamicRenderering       = true;
-
-//     // Required by dynamic Renderering
-//     static VkFormat color_format;
-//     color_format                                               = swapChain->getSwapChainImageFormat();
-//     init_info.PipelineRendereringCreateInfo.sType                = VK_STRUCTURE_TYPE_PIPELINE_RendererING_CREATE_INFO_KHR;
-//     init_info.PipelineRendereringCreateInfo.colorAttachmentCount = 1;
-//     init_info.PipelineRendereringCreateInfo.pColorAttachmentFormats = &color_format;
-//     init_info.PipelineRendereringCreateInfo.depthAttachmentFormat   = swapChain->findDepthFormat();
-//     init_info.PipelineRendereringCreateInfo.stencilAttachmentFormat = VK_FORMAT_UNDEFINED;
-
-//     ImGui_ImplVulkan_Init(&init_info);
-// }
-
-// void Renderer::shutdownImGui()
-// {
-//     ImGui_ImplVulkan_Shutdown();
-//     ImGui_ImplGlfw_Shutdown();
-//     ImGui::DestroyContext();
-//     vkDestroyDescriptorPool(device.device(), imguiPool, nullptr);
-// }
-
-// void Renderer::RendererImGui(VkCommandBuffer commandBuffer)
-// {
-//     ImGui_ImplVulkan_NewFrame();
-//     ImGui_ImplGlfw_NewFrame();
-
-//     ImGui::NewFrame();
-//     // ImGui::ShowDemoWindow();
-//     ImGui::Renderer();
-
-//     ImGui_ImplVulkan_RendererDrawData(ImGui::GetDrawData(), commandBuffer);
-// }
 
 void Renderer::freeCommandBuffers()
 {
@@ -164,14 +84,17 @@ void Renderer::recreateSwapChain()
         if (!oldSwapChain->compareSwapFormats(*swapChain.get()))
         {
             throw std::runtime_error("Swap chain image(or depth) format has changed!");
+
+            //TODO should set a callback to let app deal with this
         }
     }
-    if (swapChain->imageCount() != commandBuffers.size())
-    {
-        freeCommandBuffers();
-        createCommandBuffers();
-    }
-    // createPipeline();
+
+    //not depend on image count
+    // if (swapChain->imageCount() != commandBuffers.size())
+    // {
+    //     freeCommandBuffers();
+    //     createCommandBuffers();
+    // }
 }
 
 void Renderer::createCommandBuffers()
@@ -205,6 +128,7 @@ VkCommandBuffer Renderer::beginFrame()
     }
     isFrameStarted     = true;
     auto commandBuffer = getCurrentCommandBuffer();
+    vkResetCommandBuffer(commandBuffer, 0);
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
