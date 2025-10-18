@@ -47,6 +47,8 @@ void APP::run()
 
     Camera camera{ CameraType::Perspective };
 
+    camera.setLookAt({ 0.0f, 0.0f, -0.2f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f });
+
     std::cout << "maxPushConstantSize= " << device.properties.limits.maxPushConstantsSize << std::endl;
 
     while (!window.shouldClose())
