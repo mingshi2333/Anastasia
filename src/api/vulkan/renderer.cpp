@@ -2,30 +2,6 @@
 #include "swapchain.h"
 #include <stdexcept>
 
-// #include "ANA_window.h"
-// #include "device.h"
-// #include "glm/common.hpp"
-// #include "pipeline.h"
-// #include "Renderer.h"
-// #include <array>
-// #include <cassert>
-// #include <cstdint>
-// #include <iostream>
-// #include <memory>
-// #include <stdexcept>
-// #include <utility>
-// #include <vector>
-// // #include <vulkan/vulkan.hpp>
-// #include <vulkan/vulkan_core.h>
-// // #include <vulkan/vulkan_handles.hpp>
-
-// #define VMA_IMPLEMENTATION
-// #include <vk_mem_alloc.h>
-
-// #include "imgui.h"
-// #include "imgui_impl_glfw.h"
-// #include "imgui_impl_vulkan.h"
-
 namespace ana
 {
 
