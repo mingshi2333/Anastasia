@@ -29,10 +29,10 @@ struct QueueFamilyIndices
 class Device
 {
 public:
-#ifdef NDEBUG
-    const bool enableValidationLayers = false;
-#else
+#ifdef ANA_DEBUG
     const bool enableValidationLayers = true;
+#else
+    const bool enableValidationLayers = false;
 #endif
     Device(ANAwindow& window);
     ~Device();

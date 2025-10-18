@@ -1,0 +1,26 @@
+#pragma once
+
+#include <algorithm>
+#include <array>
+#include <atomic>
+#include <cassert>
+#include <chrono>
+#include <condition_variable>
+#include <cstring>
+#include <deque>
+#include <filesystem>
+#include <fstream>
+#include <functional>
+#include <future>
+#include <iostream>
+#include <list>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <queue>
+#include <set>
+#include <stack>
+#include <thread>
+#include <type_traits>
+#include <utility>
+#include <variant>
