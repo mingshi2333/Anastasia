@@ -5,6 +5,7 @@
 #include "api/vulkan/model.h"
 #include "api/vulkan/renderer.h"
 #include "glm/common.hpp"
+#include "math/math.h"
 #include "rendersystem.h"
 #include <array>
 #include <cstdint>
@@ -26,6 +27,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
+#include "camera/camera.h"
+
 namespace ana
 {
 
@@ -41,15 +44,23 @@ APP::~APP()
 void APP::run()
 {
     RenderSystem rendersystem{ device, renderer.getSwapChainImageFormat(), renderer.getSwapChainDepthFormat() };
+
+    Camera camera{ CameraType::Perspective };
+
     std::cout << "maxPushConstantSize= " << device.properties.limits.maxPushConstantsSize << std::endl;
 
     while (!window.shouldClose())
     {
         glfwPollEvents();
+
+        float aspect = renderer.getAspectRatio();
+        // camera.setOrthographicProjection(-aspect, aspect, -1, 1, -1, 1);
+        PerspectiveInfo perspectiveInfo{ aspect, 50, 0.1f, 10.f };
+        camera.setProjection(perspectiveInfo);
         if (auto commandBuffer = renderer.beginFrame())
         {
             renderer.beginSwapChainRendererPass(commandBuffer);
-            rendersystem.renderGameObjects(commandBuffer, gameObjects);
+            rendersystem.renderGameObjects(commandBuffer, gameObjects, camera);
             renderer.endSwapChainRendererPass(commandBuffer);
             renderer.endFrame();
         }
@@ -121,7 +132,7 @@ void APP::loadGameObjects()
     std::shared_ptr<ana::Model> Model = createCubeModel(device, { .0f, .0f, .0f });
     auto cube                         = GameObject::createGameObject();
     cube.model                        = Model;
-    cube.transform.translation        = { .0f, .0f, .5f };
+    cube.transform.translation        = { .0f, .0f, 2.5f };
     cube.transform.scale              = { .5f, .5f, .5f };
     gameObjects.push_back(std::move(cube));
 }

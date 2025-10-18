@@ -65,7 +65,7 @@ find_package(Vulkan REQUIRED)
 find_package(Threads REQUIRED)
 
 add_subdirectory(src/api)
-add_subdirectory(src/camera)
+add_subdirectory(src/math)
 add_subdirectory(src/camera)
 
 target_link_libraries(Anastasia
@@ -74,6 +74,8 @@ target_link_libraries(Anastasia
     Threads::Threads
     glm::glm
     ana-api
+    ana-math
+    ana-camera
     GPUOpen::VulkanMemoryAllocator
     backward
     dw

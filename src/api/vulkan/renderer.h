@@ -55,6 +55,11 @@ public:
         return swapChain->findDepthFormat();
     }
 
+    float getAspectRatio() const
+    {
+        return swapChain->extentAspectRatio();
+    }
+
     uint32_t getFrameIndex() const
     {
         assert(isFrameStarted && "can't call getFrameIndex when frame is not in progress");

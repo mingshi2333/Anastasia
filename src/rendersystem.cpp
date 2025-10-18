@@ -1,6 +1,7 @@
 #include "api/gameobject.h"
 #include "api/pipeline.h"
 #include "api/vulkan/device.h"
+#include "camera/camera.h"
 #include "glm/fwd.hpp"
 #include <stdexcept>
 #include <vector>
@@ -65,7 +66,8 @@ void RenderSystem::createPipeline(VkFormat colorFormat, VkFormat depthFormat)
         std::make_unique<vk::ANAPipeline>(device, "../shaders/vert.spv", "../shaders/frag.spv", pipelineConfig);
 }
 
-void RenderSystem::renderGameObjects(VkCommandBuffer commandBuffer, std::vector<GameObject>& gameObjects)
+void RenderSystem::renderGameObjects(VkCommandBuffer commandBuffer, std::vector<GameObject>& gameObjects,
+                                     Camera& camera)
 {
     anaPipeline->bind(commandBuffer);
     for (auto& obj : gameObjects)
@@ -75,7 +77,7 @@ void RenderSystem::renderGameObjects(VkCommandBuffer commandBuffer, std::vector<
         SimplePushConstantData push{};
 
         push.color     = obj.color;
-        push.transform = obj.transform.mat4();
+        push.transform = camera.getProjection() * obj.transform.mat4();
 
         vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0,
                            sizeof(SimplePushConstantData), &push);

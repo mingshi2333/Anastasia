@@ -3,6 +3,7 @@
 #include "api/gameobject.h"
 #include "api/pipeline.h"
 #include "api/vulkan/device.h"
+#include "camera/camera.h"
 #include <memory>
 #include <vector>
 #include <vulkan/vulkan_core.h>
@@ -18,7 +19,7 @@ public:
     RenderSystem& operator=(const RenderSystem&) = delete;
     RenderSystem(RenderSystem&&)                 = delete;
     RenderSystem& operator=(RenderSystem&&)      = delete;
-    void renderGameObjects(VkCommandBuffer commandBuffer, std::vector<GameObject>& gameObjects);
+    void renderGameObjects(VkCommandBuffer commandBuffer, std::vector<GameObject>& gameObjects, Camera& cmaera);
 
 private:
     void createPipelineLayout();
