@@ -47,20 +47,17 @@ void Model::draw(VkCommandBuffer commandBuffer)
 
 std::vector<VkVertexInputBindingDescription> Model::Vertex::getBindingDescriptions()
 {
-    // std::vector<VkVertexInputBindingDescription> bindingDescriptions(1);
-    // bindingDescriptions[0].binding   = 0;
-    // bindingDescriptions[0].stride    = sizeof(Vertex);
-    // bindingDescriptions[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-    // return bindingDescriptions;
-    return {
-        { 0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX }
-    };
+    std::vector<VkVertexInputBindingDescription> bindingDescriptions(1);
+    bindingDescriptions[0].binding   = 0;
+    bindingDescriptions[0].stride    = sizeof(Vertex);
+    bindingDescriptions[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+    return bindingDescriptions;
 }
 
 std::vector<VkVertexInputAttributeDescription> Model::Vertex::getAttributeDescriptions()
 {
     return {
-        { 0, 0, VK_FORMAT_R32G32_SFLOAT,    offsetof(Model::Vertex, position) },
+        { 0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Model::Vertex, position) },
         { 1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Model::Vertex, color)    }
     };
 }
