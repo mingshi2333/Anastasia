@@ -122,11 +122,11 @@ std::unique_ptr<ana::Model> createCubeModel(vk::Device& device, glm::vec3 offset
 
 void APP::loadGameObjects()
 {
-    std::shared_ptr<ana::Model> lveModel = createCubeModel(device, { .0f, .0f, .0f });
-    auto cube                            = GameObject::createGameObject();
-    cube.model                           = lveModel;
-    cube.transform.translation           = { .0f, .0f, .5f };
-    cube.transform.scale                 = { .5f, .5f, .5f };
+    std::shared_ptr<ana::Model> Model = createCubeModel(device, { .0f, .0f, .0f });
+    auto cube                         = GameObject::createGameObject();
+    cube.model                        = Model;
+    cube.transform.translation        = { .0f, .0f, .5f };
+    cube.transform.scale              = { .5f, .5f, .5f };
     gameObjects.push_back(std::move(cube));
 }
 
