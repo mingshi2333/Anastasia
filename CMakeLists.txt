@@ -67,6 +67,7 @@ find_package(Threads REQUIRED)
 add_subdirectory(src/api)
 add_subdirectory(src/math)
 add_subdirectory(src/camera)
+add_subdirectory(src/event)
 
 target_link_libraries(Anastasia
     PRIVATE
@@ -76,6 +77,7 @@ target_link_libraries(Anastasia
     ana-api
     ana-math
     ana-camera
+    ana-event
     GPUOpen::VulkanMemoryAllocator
     backward
     dw
