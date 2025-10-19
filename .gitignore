@@ -2,6 +2,11 @@ build/*
 .idea/*
 .xmake/*
 .cache/*
-.vscode/*
+#.vscode/*
 .VSCodeCounter/*
 bin/*
+
+
+# ignore CPM ge
+third_party/**/_deps
+.cpm_cache

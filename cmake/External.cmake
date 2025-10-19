@@ -1,3 +1,5 @@
+set(FETCHCONTENT_BASE_DIR "${CMAKE_SOURCE_DIR}/third_party/_deps")
+set(CPM_SOURCE_CACHE "${CMAKE_SOURCE_DIR}/.cpm_cache")
 include(CPM)
 set(VK_SDK_VERSION 1.4.304)
 
