@@ -11,6 +11,12 @@ CPMAddPackage(
     GIT_TAG v1.6
 )
 
+CPMAddPackage(
+    NAME unordered_dense
+    GITHUB_REPOSITORY martinus/unordered_dense
+    VERSION 4.1.2
+)
+
 # CPMAddPackage(
 # NAME Format.cmake
 # VERSION 1.8.3

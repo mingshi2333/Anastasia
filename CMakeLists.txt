@@ -47,8 +47,17 @@ include(CompilerOptions) # Find dependencies
 include(External)
 include(AnaCompilerOptions)
 
+find_package(Vulkan REQUIRED)
+find_package(Threads REQUIRED)
+
 # Recursively find all cpp files
 file(GLOB_RECURSE SOURCE_FILES "${PROJECT_SOURCE_DIR}/src/*.cpp")
+
+add_subdirectory(src/common)
+add_subdirectory(src/api)
+add_subdirectory(src/math)
+add_subdirectory(src/camera)
+add_subdirectory(src/event)
 
 # Add executable, using the collected source file list
 add_executable(Anastasia ${SOURCE_FILES})
@@ -61,16 +70,9 @@ target_include_directories(Anastasia PRIVATE
     ${PROJECT_SOURCE_DIR}/api
 )
 
-find_package(Vulkan REQUIRED)
-find_package(Threads REQUIRED)
-
-add_subdirectory(src/api)
-add_subdirectory(src/math)
-add_subdirectory(src/camera)
-add_subdirectory(src/event)
-
 target_link_libraries(Anastasia
     PRIVATE
+    ana-common
     glfw
     Threads::Threads
     glm::glm

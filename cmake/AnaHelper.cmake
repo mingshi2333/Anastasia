@@ -28,7 +28,9 @@ function(ana_setup_target TARGET_SUFFIX)
     endif()
 
     ana_compiler_options(${TARGET})
-    target_include_directories(${TARGET} PRIVATE ${ANA_SRC_DIR})
+
+    # TODO: should use private to keep including directory purly
+    target_include_directories(${TARGET} PUBLIC ${ANA_SRC_DIR})
 
     add_library(Anastasia::${TARGET_SUFFIX} ALIAS ${TARGET})
 endfunction()

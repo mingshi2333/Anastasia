@@ -1,6 +1,6 @@
-file(GLOB ANA_COMMON_SRC *.cpp)
+file(GLOB ANA_COMMON_SRC *.cpp *.h)
 
-ana_setup_target(common ${ANA_EVENT_SRC})
+ana_setup_target(common ${ANA_COMMON_SRC})
 
 target_link_libraries(
     ana-common

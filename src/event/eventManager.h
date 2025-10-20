@@ -1,11 +1,14 @@
+#include "common/hash.h"
 #include <atomic>
 #include <functional>
 #include <memory>
 #include <mutex>
 #include <queue>
-#include <unordered_map>
 #include <vector>
 
+namespace ana
+
+{
 class EventManager
 {
 
@@ -82,19 +85,7 @@ public:
         }
     }
 
-    void processAll()
-    {
-        // 先拍快照，再逐个处理，避免持全局锁执行回调
-        std::vector<TypeErased*> list;
-        {
-            std::scoped_lock lk(mapMutex_);
-            list.reserve(map_.size());
-            for (auto& kv : map_)
-                list.push_back(kv.second.get());
-        }
-        for (auto* p : list)
-            p->process();
-    }
+    void processAll();
 
 private:
     using TypeID = size_t;
@@ -130,6 +121,7 @@ private:
 
 private:
     std::mutex mapMutex_; // 仅保护 map_ 的增删查
-    // 你的 HashMap/SmallVector 若为自定义容器可继续用；这里用标准容器同理
-    std::unordered_map<TypeID, std::unique_ptr<TypeErased>> map_;
+    HashMap<TypeID, std::unique_ptr<TypeErased>> map_;
 };
+
+} // namespace ana
