@@ -4,6 +4,7 @@
 #include "api/vulkan/device.h"
 #include "api/vulkan/model.h"
 #include "api/vulkan/renderer.h"
+#include "event/event.h"
 #include "glm/common.hpp"
 #include "math/math.h"
 #include "rendersystem.h"
@@ -18,8 +19,8 @@
 #include <vulkan/vulkan_core.h>
 // #include <vulkan/vulkan_handles.hpp>
 
-#define VMA_IMPLEMENTATION
-#include <vk_mem_alloc.h>
+// #define VMA_IMPLEMENTATION
+// #include <vk_mem_alloc.h>
 
 #include "glm/fwd.hpp"
 #define GLM_FORCE_RADIANS
@@ -28,6 +29,9 @@
 #include <glm/gtc/constants.hpp>
 
 #include "camera/camera.h"
+
+#include "event/eventManager.h"
+#include <chrono>
 
 namespace ana
 {
@@ -46,14 +50,95 @@ void APP::run()
     RenderSystem rendersystem{ device, renderer.getSwapChainImageFormat(), renderer.getSwapChainDepthFormat() };
 
     Camera camera{ CameraType::Perspective };
+    ana::EventManager em{};
 
-    camera.setLookAt({ 0.0f, 0.0f, -0.2f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f });
+    // WASD state for continuous movement
+    bool kW = false, kA = false, kS = false, kD = false;
+    bool kShift = false, kUp = false, kDown = false; // optional: E/Q for up/down
+
+    em.registerEvent<KeyboardEvent>(
+        [&](const KeyboardEvent& e)
+        {
+            if (e.m_key == ana::Key::P && e.m_keystate == ana::KeyState::Pressed)
+            {
+                // TODO: 切换渲染模式/调试层
+                return true;
+            }
+            return false;
+        });
+
+    // Track pressed/released state for WASD (and Shift/Q/E optional)
+    em.registerEvent<KeyboardEvent>(
+        [&](const KeyboardEvent& e)
+        {
+            const bool pressed = (e.m_keystate == ana::KeyState::Pressed || e.m_keystate == ana::KeyState::Repeat);
+            switch (e.m_key)
+            {
+            case ana::Key::W:
+                kW = pressed;
+                break;
+            case ana::Key::A:
+                kA = pressed;
+                break;
+            case ana::Key::S:
+                kS = pressed;
+                break;
+            case ana::Key::D:
+                kD = pressed;
+                break;
+            case ana::Key::LeftShift:
+                kShift = pressed;
+                break;
+            case ana::Key::E:
+                kUp = pressed;
+                break;
+            case ana::Key::Q:
+                kDown = pressed;
+                break;
+            default:
+                break;
+            }
+            return false;
+        });
+
+    window.setKeySink(
+        [&](const KeyboardEvent& e)
+        {
+            em.pushEvent<KeyboardEvent>(e);
+        });
+
+    // Camera eye (left-handed: +Z is forward)
+    ana::Vec3 eye{ 0.0f, 0.0f, -0.2f };
+    camera.setLookAt(eye, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f });
 
     std::cout << "maxPushConstantSize= " << device.properties.limits.maxPushConstantsSize << std::endl;
 
-    while (!window.shouldClose())
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    while (window.pollEvents())
     {
-        glfwPollEvents();
+        // Dispatch input events to update WASD state
+        em.processAll();
+        auto newTime    = std::chrono::high_resolution_clock::now();
+        float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
+
+        currentTime = newTime;
+
+        // Update camera position from WASD each frame
+        float speed = 2.0f * (kShift ? 3.0f : 1.0f);
+        // LH coordinate: +Z forward, +X right, +Y up
+        if (kW)
+            eye.z += speed * frameTime;
+        if (kS)
+            eye.z -= speed * frameTime;
+        if (kA)
+            eye.x -= speed * frameTime;
+        if (kD)
+            eye.x += speed * frameTime;
+        if (kUp)
+            eye.y += speed * frameTime;
+        if (kDown)
+            eye.y -= speed * frameTime;
+        camera.setLookAt(eye, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f });
 
         float aspect = renderer.getAspectRatio();
         // camera.setOrthographicProjection(-aspect, aspect, -1, 1, -1, 1);

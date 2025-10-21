@@ -17,15 +17,4 @@ void EventManager::processAll()
         p->process();
 }
 
-template <typename TEvent>
-
-void EventManager::registerEvent(std::function<bool(const TEvent&)>&& func)
-{
-    auto* p = getOrCreate<TEvent>();
-    {
-        std::scoped_lock lk(p->data.mtx);
-        p->data.handlers.push_back(std::move(func));
-    }
-}
-
 } // namespace ana

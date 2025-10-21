@@ -58,6 +58,7 @@ add_subdirectory(src/api)
 add_subdirectory(src/math)
 add_subdirectory(src/camera)
 add_subdirectory(src/event)
+add_subdirectory(src/wsi)
 
 # Add executable, using the collected source file list
 add_executable(Anastasia ${SOURCE_FILES})
@@ -80,6 +81,7 @@ target_link_libraries(Anastasia
     ana-math
     ana-camera
     ana-event
+    ana-wsi
     GPUOpen::VulkanMemoryAllocator
     backward
     dw

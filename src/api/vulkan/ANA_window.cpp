@@ -1,4 +1,7 @@
 #include "ANA_window.h"
+#include "event/event.h"
+#include "event/input.h"
+#include "wsi/keymap.h"
 #include <stdexcept>
 
 namespace ana
@@ -7,27 +10,47 @@ namespace ana
 ANAwindow::ANAwindow(int w, int h, std::string name)
     : width(w)
     , height(h)
-    , windowName(name)
+    , windowName(std::move(name))
 {
-    initWindow();
-}
-
-ANAwindow::~ANAwindow()
-{
-    glfwDestroyWindow(window);
-    glfwTerminate();
-}
-
-void ANAwindow::initWindow()
-{
-    // glfw start
+    // Initialize GLFW window
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
     window = glfwCreateWindow(width, height, windowName.c_str(), nullptr, nullptr);
-    glfwSetWindowUserPointer(getGLFWwindow(), this);
-    glfwSetFramebufferSizeCallback(getGLFWwindow(), framebufferResizeCallback);
+    if (!window)
+    {
+        throw std::runtime_error("failed to create GLFW window");
+    }
+
+    glfwSetWindowUserPointer(window, this);
+    glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
+
+    // Keyboard callback -> forward to sink if set
+    glfwSetKeyCallback(window,
+                       [](GLFWwindow* w, int key, int, int action, int /*mods*/)
+                       {
+                           auto* self = reinterpret_cast<ANAwindow*>(glfwGetWindowUserPointer(w));
+                           if (!self || !self->keySink)
+                               return;
+
+                           ana::Key k = ana::wsi::fromGlfwKey(key);
+                           if (k == ana::Key::Unknown)
+                               return;
+
+                           ana::KeyState s = ana::wsi::fromGlfwAction(action);
+                           self->keySink(ana::KeyboardEvent{ k, s });
+                       });
+}
+
+ANAwindow::~ANAwindow()
+{
+    if (window)
+    {
+        glfwDestroyWindow(window);
+        window = nullptr;
+    }
+    glfwTerminate();
 }
 
 void ANAwindow::createWindowSurface(VkInstance instance, VkSurfaceKHR* surface)
@@ -38,11 +61,24 @@ void ANAwindow::createWindowSurface(VkInstance instance, VkSurfaceKHR* surface)
     }
 }
 
-void ANAwindow::framebufferResizeCallback(GLFWwindow* window, int width, int height)
+void ANAwindow::framebufferResizeCallback(GLFWwindow* w, int ww, int hh)
 {
-    auto anaWindow                = reinterpret_cast<ANAwindow*>(glfwGetWindowUserPointer(window));
+    auto anaWindow                = reinterpret_cast<ANAwindow*>(glfwGetWindowUserPointer(w));
     anaWindow->framebufferResized = true;
-    anaWindow->width              = width;
-    anaWindow->height             = height;
+    anaWindow->width              = ww;
+    anaWindow->height             = hh;
+}
+
+bool ANAwindow::poll()
+{
+    glfwPollEvents();
+    return window && !glfwWindowShouldClose(window);
+}
+
+} // namespace ana
+namespace ana {
+void ANAwindow::setKeySink(std::function<void(const ana::KeyboardEvent&)> sink)
+{
+    keySink = std::move(sink);
 }
 } // namespace ana

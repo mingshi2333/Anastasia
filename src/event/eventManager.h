@@ -76,7 +76,14 @@ public:
     }
 
     template <typename TEvent>
-    void registerEvent(std::function<bool(const TEvent&)>&& func);
+    void registerEvent(std::function<bool(const TEvent&)>&& func)
+    {
+        auto* p = getOrCreate<TEvent>();
+        {
+            std::scoped_lock lk(p->data.mtx);
+            p->data.handlers.push_back(std::move(func));
+        }
+    }
 
     void processAll();
 
