@@ -33,7 +33,7 @@ class EventManager
             {
                 std::scoped_lock lk(mtx);
                 std::swap(local, events);
-                hs = handlers; // 拍一份快照，避免遍历期间被修改
+                hs = handlers;
             }
             while (!local.empty())
             {
@@ -42,7 +42,7 @@ class EventManager
                 for (auto& cb : hs)
                 {
                     if (cb && cb(e))
-                        break; // 返回 true 则停止传播；不需要就改为 void 并去掉判断
+                        break;
                 }
             }
         }
@@ -72,18 +72,11 @@ public:
     void pushEvent(const TEvent& e)
     {
         auto* p = getOrCreate<TEvent>();
-        p->data.enqueue(e); // 每类型内锁，线程安全
+        p->data.enqueue(e);
     }
 
     template <typename TEvent>
-    void registerEvent(std::function<bool(const TEvent&)>&& func)
-    {
-        auto* p = getOrCreate<TEvent>();
-        {
-            std::scoped_lock lk(p->data.mtx);
-            p->data.handlers.push_back(std::move(func));
-        }
-    }
+    void registerEvent(std::function<bool(const TEvent&)>&& func);
 
     void processAll();
 
