@@ -1,7 +1,7 @@
 #include "ANA_window.h"
 #include "event/event.h"
 #include "event/input.h"
-#include "wsi/keymap.h"
+#include "wsi/wsi.h"
 #include <stdexcept>
 
 namespace ana
@@ -12,73 +12,49 @@ ANAwindow::ANAwindow(int w, int h, std::string name)
     , height(h)
     , windowName(std::move(name))
 {
-    // Initialize GLFW window
-    glfwInit();
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-
-    window = glfwCreateWindow(width, height, windowName.c_str(), nullptr, nullptr);
-    if (!window)
+    // Create WSI window and wire resize -> update cached extent
+    wsi = ana::wsi::CreateGLFWWSI(width, height, windowName.c_str());
+    if (!wsi)
     {
-        throw std::runtime_error("failed to create GLFW window");
+        throw std::runtime_error("failed to create WSI window");
     }
-
-    glfwSetWindowUserPointer(window, this);
-    glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
-
-    // Keyboard callback -> forward to sink if set
-    glfwSetKeyCallback(window,
-                       [](GLFWwindow* w, int key, int, int action, int /*mods*/)
-                       {
-                           auto* self = reinterpret_cast<ANAwindow*>(glfwGetWindowUserPointer(w));
-                           if (!self || !self->keySink)
-                               return;
-
-                           ana::Key k = ana::wsi::fromGlfwKey(key);
-                           if (k == ana::Key::Unknown)
-                               return;
-
-                           ana::KeyState s = ana::wsi::fromGlfwAction(action);
-                           self->keySink(ana::KeyboardEvent{ k, s });
-                       });
+    wsi->setResizeSink(
+        [this](const ana::WindowResizeEvent& e)
+        {
+            framebufferResized = true;
+            width              = static_cast<int>(e.m_width);
+            height             = static_cast<int>(e.m_height);
+        });
+    // Keyboard events are delivered via setKeySink() below (optional)
 }
 
-ANAwindow::~ANAwindow()
-{
-    if (window)
-    {
-        glfwDestroyWindow(window);
-        window = nullptr;
-    }
-    glfwTerminate();
-}
+ANAwindow::~ANAwindow() = default;
 
 void ANAwindow::createWindowSurface(VkInstance instance, VkSurfaceKHR* surface)
 {
-    if (glfwCreateWindowSurface(instance, window, nullptr, surface) != VK_SUCCESS)
+    auto* native = getGLFWwindow();
+    if (!native)
+    {
+        throw std::runtime_error("failed to access native window");
+    }
+    if (glfwCreateWindowSurface(instance, native, nullptr, surface) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to create window surface!");
     }
 }
 
-void ANAwindow::framebufferResizeCallback(GLFWwindow* w, int ww, int hh)
-{
-    auto anaWindow                = reinterpret_cast<ANAwindow*>(glfwGetWindowUserPointer(w));
-    anaWindow->framebufferResized = true;
-    anaWindow->width              = ww;
-    anaWindow->height             = hh;
-}
-
 bool ANAwindow::poll()
 {
-    glfwPollEvents();
-    return window && !glfwWindowShouldClose(window);
+    return wsi ? wsi->poll() : false;
 }
 
-} // namespace ana
-namespace ana {
 void ANAwindow::setKeySink(std::function<void(const ana::KeyboardEvent&)> sink)
 {
-    keySink = std::move(sink);
+    keySink = sink; // keep a copy if caller needs to query
+    if (wsi)
+    {
+        wsi->setKeySink(std::move(sink));
+    }
 }
+
 } // namespace ana

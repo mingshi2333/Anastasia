@@ -1,10 +1,12 @@
 #pragma once
-#include <string>
 #include <functional>
+#include <memory>
+#include <string>
 #include <vulkan/vulkan_core.h>
 #define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
 #include "event/event.h" // ana::KeyboardEvent
+#include "wsi/wsi.h" // ana::wsi::IWSI
+#include <GLFW/glfw3.h>
 
 namespace ana
 {
@@ -18,12 +20,17 @@ public:
     void createWindowSurface(VkInstance instance, VkSurfaceKHR* surface);
     void setKeySink(std::function<void(const ana::KeyboardEvent&)> sink);
     bool poll();
+
     // Back-compat alias for existing call sites
-    bool pollEvents() { return poll(); }
+    bool pollEvents()
+    {
+        return poll();
+    }
 
     bool shouldClose()
     {
-        return glfwWindowShouldClose(window);
+        auto* h = getGLFWwindow();
+        return h ? glfwWindowShouldClose(h) : true;
     }
 
     VkExtent2D getExtent()
@@ -33,7 +40,7 @@ public:
 
     GLFWwindow* getGLFWwindow() const
     {
-        return window;
+        return wsi ? wsi->nativeHandle() : nullptr;
     }
 
     bool wasWindowResized()
@@ -46,15 +53,13 @@ public:
         framebufferResized = false;
     }
 
-    static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
-
 private:
-    GLFWwindow* window{nullptr};
+    std::unique_ptr<ana::wsi::IWSI> wsi;
     int width;
     int height;
     std::string windowName;
     bool framebufferResized = false;
-    std::function<void(const ana::KeyboardEvent&)> keySink; // optional sink
+    std::function<void(const ana::KeyboardEvent&)> keySink;
 };
 
 } // namespace ana

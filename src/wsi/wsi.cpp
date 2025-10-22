@@ -4,6 +4,10 @@
 #include "wsi/keymap.h"
 #include <GLFW/glfw3.h>
 #include <algorithm>
+#include <cstdint>
+#include <stdexcept>
+#include <vector>
+#include <vulkan/vulkan_core.h>
 
 namespace ana::wsi
 {
@@ -18,6 +22,7 @@ public:
         win        = glfwCreateWindow(w, h, title, nullptr, nullptr);
         auto* self = this;
         glfwSetWindowUserPointer(win, self);
+
         glfwSetKeyCallback(win,
                            [](GLFWwindow* w, int key, int, int action, int)
                            {
@@ -51,6 +56,33 @@ public:
         glfwTerminate();
     }
 
+    std::vector<const char*> getRequiredInstanceExtensions() const override
+    {
+        uint32_t count   = 0;
+        const char** ext = glfwGetRequiredInstanceExtensions(&count);
+
+        if (!ext || count == 0)
+        {
+            throw std::runtime_error("glfwGetRequiredInstanceExtensions returned empty");
+        }
+        return std::vector<const char*>(ext, ext + count);
+    }
+
+    VkSurfaceKHR createSurface(VkInstance instance) override
+    {
+        VkSurfaceKHR surface = VK_NULL_HANDLE;
+        if (glfwCreateWindowSurface(instance, win, nullptr, &surface) != VK_SUCCESS)
+        {
+            throw std::runtime_error("Failed to create Vulkan surface via GLFW");
+        }
+        return surface;
+    }
+
+    VkExtent2D frameBufferExtent() const override
+    {
+        return extent;
+    }
+
     bool poll() override
     {
         glfwPollEvents();
@@ -64,9 +96,10 @@ public:
 
 private:
     GLFWwindow* win = nullptr;
+
+    VkExtent2D extent{};
 };
 
-// 简单工厂（外部链接）
 std::unique_ptr<IWSI> CreateGLFWWSI(int w, int h, const char* title)
 {
     return std::unique_ptr<IWSI>(new GLFWWSI(w, h, title));

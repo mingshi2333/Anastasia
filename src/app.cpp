@@ -52,20 +52,8 @@ void APP::run()
     Camera camera{ CameraType::Perspective };
     ana::EventManager em{};
 
-    // WASD state for continuous movement
     bool kW = false, kA = false, kS = false, kD = false;
     bool kShift = false, kUp = false, kDown = false; // optional: E/Q for up/down
-
-    em.registerEvent<KeyboardEvent>(
-        [&](const KeyboardEvent& e)
-        {
-            if (e.m_key == ana::Key::P && e.m_keystate == ana::KeyState::Pressed)
-            {
-                // TODO: 切换渲染模式/调试层
-                return true;
-            }
-            return false;
-        });
 
     // Track pressed/released state for WASD (and Shift/Q/E optional)
     em.registerEvent<KeyboardEvent>(

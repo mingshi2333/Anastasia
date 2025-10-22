@@ -5,7 +5,6 @@ namespace ana
 
 void EventManager::processAll()
 {
-    // 先拍快照，再逐个处理，避免持全局锁执行回调
     std::vector<TypeErased*> list;
     {
         std::scoped_lock lk(mapMutex_);
