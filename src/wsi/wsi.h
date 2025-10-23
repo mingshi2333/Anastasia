@@ -26,13 +26,13 @@ public:
     virtual std::vector<const char*> getRequiredInstanceExtensions() const = 0;
 
     virtual VkSurfaceKHR createSurface(VkInstance instance) = 0;
-    virtual VkExtent2D frameBufferExtent() const            = 0;
+    virtual VkExtent2D framebufferExtent() const            = 0;
 
     virtual GLFWwindow* nativeHandle() const = 0;
 
     void setKeySink(KeySink s)
     {
-        sink = std::move(s);
+        keySink = std::move(s);
     }
 
     void setResizeSink(ResizeSink s)
@@ -51,7 +51,7 @@ public:
     }
 
 protected:
-    KeySink sink;
+    KeySink keySink;
     ResizeSink resizeSink;
     MouseButtonSink mouseButtonSink;
     MouseMoveSink mouseMoveSink;

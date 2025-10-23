@@ -8,6 +8,7 @@
 #include "glm/common.hpp"
 #include "math/math.h"
 #include "rendersystem.h"
+#include "wsi/wsi.h"
 #include <array>
 #include <cstdint>
 #include <iostream>
@@ -38,7 +39,6 @@ namespace ana
 
 APP::APP()
 {
-    loadGameObjects();
 }
 
 APP::~APP()
@@ -47,15 +47,18 @@ APP::~APP()
 
 void APP::run()
 {
-    RenderSystem rendersystem{ device, renderer.getSwapChainImageFormat(), renderer.getSwapChainDepthFormat() };
+    wsi          = ana::wsi::CreateGLFWWSI(WIDTH, HEIGHT, "Anastasia");
+    device       = std::make_unique<vk::Device>(*wsi);
+    renderer     = std::make_unique<Renderer>(*wsi, *device);
+    renderSystem = std::make_unique<RenderSystem>(*device, renderer->getSwapChainImageFormat(),
+                                                  renderer->getSwapChainDepthFormat());
 
-    Camera camera{ CameraType::Perspective };
+    loadGameObjects();
+
     ana::EventManager em{};
-
     bool kW = false, kA = false, kS = false, kD = false;
-    bool kShift = false, kUp = false, kDown = false; // optional: E/Q for up/down
+    bool kShift = false, kUp = false, kDown = false;
 
-    // Track pressed/released state for WASD (and Shift/Q/E optional)
     em.registerEvent<KeyboardEvent>(
         [&](const KeyboardEvent& e)
         {
@@ -89,31 +92,39 @@ void APP::run()
             return false;
         });
 
-    window.setKeySink(
-        [&](const KeyboardEvent& e)
-        {
-            em.pushEvent<KeyboardEvent>(e);
-        });
+    if (wsi)
+    {
+        wsi->setKeySink(
+            [&](const KeyboardEvent& e)
+            {
+                em.pushEvent<KeyboardEvent>(e);
+            });
+        wsi->setResizeSink(
+            [&](const ana::WindowResizeEvent&)
+            {
+                if (renderer)
+                {
+                    renderer->notifyWindowResized();
+                }
+            });
+    }
 
-    // Camera eye (left-handed: +Z is forward)
+    Camera camera{ CameraType::Perspective };
     ana::Vec3 eye{ 0.0f, 0.0f, -0.2f };
     camera.setLookAt(eye, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f });
 
-    std::cout << "maxPushConstantSize= " << device.properties.limits.maxPushConstantsSize << std::endl;
+    std::cout << "maxPushConstantSize= " << device->properties.limits.maxPushConstantsSize << std::endl;
 
     auto currentTime = std::chrono::high_resolution_clock::now();
-    while (window.pollEvents())
+    while (wsi && wsi->poll())
     {
-        // Dispatch input events to update WASD state
         em.processAll();
+
         auto newTime    = std::chrono::high_resolution_clock::now();
-        float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
+        float frameTime = std::chrono::duration<float>(newTime - currentTime).count();
+        currentTime     = newTime;
 
-        currentTime = newTime;
-
-        // Update camera position from WASD each frame
         float speed = 2.0f * (kShift ? 3.0f : 1.0f);
-        // LH coordinate: +Z forward, +X right, +Y up
         if (kW)
             eye.z += speed * frameTime;
         if (kS)
@@ -128,19 +139,23 @@ void APP::run()
             eye.y -= speed * frameTime;
         camera.setLookAt(eye, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f });
 
-        float aspect = renderer.getAspectRatio();
-        // camera.setOrthographicProjection(-aspect, aspect, -1, 1, -1, 1);
-        PerspectiveInfo perspectiveInfo{ aspect, 50, 0.1f, 10.f };
+        float aspect = renderer->getAspectRatio();
+        PerspectiveInfo perspectiveInfo{ aspect, 50.f, 0.1f, 10.f };
         camera.setProjection(perspectiveInfo);
-        if (auto commandBuffer = renderer.beginFrame())
+
+        if (auto commandBuffer = renderer->beginFrame())
         {
-            renderer.beginSwapChainRendererPass(commandBuffer);
-            rendersystem.renderGameObjects(commandBuffer, gameObjects, camera);
-            renderer.endSwapChainRendererPass(commandBuffer);
-            renderer.endFrame();
+            renderer->beginSwapChainRendererPass(commandBuffer);
+            renderSystem->renderGameObjects(commandBuffer, gameObjects, camera);
+            renderer->endSwapChainRendererPass(commandBuffer);
+            renderer->endFrame();
         }
     }
-    // vkDeviceWaitIdle(device.device());
+
+    if (device)
+    {
+        vkDeviceWaitIdle(device->device());
+    }
 }
 
 std::unique_ptr<ana::Model> createCubeModel(vk::Device& device, glm::vec3 offset)
@@ -204,7 +219,7 @@ std::unique_ptr<ana::Model> createCubeModel(vk::Device& device, glm::vec3 offset
 
 void APP::loadGameObjects()
 {
-    std::shared_ptr<ana::Model> Model = createCubeModel(device, { .0f, .0f, .0f });
+    std::shared_ptr<ana::Model> Model = createCubeModel(*device, { .0f, .0f, .0f });
     auto cube                         = GameObject::createGameObject();
     cube.model                        = Model;
     cube.transform.translation        = { .0f, .0f, 2.5f };

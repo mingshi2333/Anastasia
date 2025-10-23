@@ -1,5 +1,5 @@
 #pragma once
-#include "ANA_window.h"
+#include "wsi/wsi.h"
 #include <cstdint>
 #include <vector>
 #include <vulkan/vulkan.h>
@@ -34,7 +34,7 @@ public:
 #else
     const bool enableValidationLayers = false;
 #endif
-    Device(ANAwindow& window);
+    Device(ana::wsi::IWSI& wsi);
     ~Device();
 
     // Not copyable or movable
@@ -120,14 +120,14 @@ private:
     bool checkValidationLayerSupport();
     QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
     void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
-    void hasGflwRequiredInstanceExtensions();
+    void ensureRequiredInstanceExtensions();
     bool checkDeviceExtensionSupport(VkPhysicalDevice device);
     SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
 
     VkInstance instance;
     VkDebugUtilsMessengerEXT debugMessenger;
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-    ANAwindow& window;
+    ana::wsi::IWSI& wsi;
     VkCommandPool commandPool;
 
     VkDevice device_;

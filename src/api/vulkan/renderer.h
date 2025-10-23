@@ -2,6 +2,7 @@
 
 #include "device.h"
 #include "swapchain.h"
+#include "wsi/wsi.h"
 #include <cassert>
 #include <cstdint>
 #include <cstdlib>
@@ -21,7 +22,7 @@ namespace ana
 class Renderer
 {
 public:
-    Renderer(ana::ANAwindow& window, vk::Device& device);
+    Renderer(ana::wsi::IWSI& wsi, vk::Device& device);
     ~Renderer();
     Renderer(const Renderer&)            = delete;
     Renderer& operator=(const Renderer&) = delete;
@@ -71,6 +72,11 @@ public:
     void beginSwapChainRendererPass(VkCommandBuffer commandBuffer);
     void endSwapChainRendererPass(VkCommandBuffer commandBuffer);
 
+    void notifyWindowResized()
+    {
+        framebufferResized = true;
+    }
+
 private:
     void createCommandBuffers();
     void freeCommandBuffers();
@@ -82,8 +88,7 @@ private:
     // void shutdownImGui();
 
     // void RendererGameObject(VkCommandBuffer commandBuffer);
-
-    ANAwindow& window;
+    ana::wsi::IWSI& wsi;
     vk::Device& device;
     std::shared_ptr<vk::SwapChain> swapChain;
     std::vector<VkCommandBuffer> commandBuffers;
@@ -91,6 +96,7 @@ private:
     uint32_t currentImageIndex;
     uint32_t currentFrameIndex{ 0 };
     bool isFrameStarted{ false };
+    bool framebufferResized{ false };
 
     VkDescriptorPool imguiPool = VK_NULL_HANDLE;
 };

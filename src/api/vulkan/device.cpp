@@ -1,10 +1,11 @@
 #include "device.h"
-#include "ANA_window.h"
+#include "wsi/wsi.h"
 
 // std headers
 #include <cstring>
 #include <iostream>
 #include <set>
+#include <string>
 #include <unordered_set>
 
 namespace ana::vk
@@ -47,8 +48,8 @@ void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT
 }
 
 // class member functions
-vk::Device::Device(ANAwindow& window)
-    : window{ window }
+vk::Device::Device(ana::wsi::IWSI& wsi)
+    : wsi{ wsi }
 {
     createInstance();
     setupDebugMessenger();
@@ -91,7 +92,7 @@ void vk::Device::createInstance()
     createInfo.sType                = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     createInfo.pApplicationInfo     = &appInfo;
 
-    auto extensions                    = getRequiredExtensions();
+    auto extensions                    = wsi.getRequiredInstanceExtensions();
     createInfo.enabledExtensionCount   = static_cast<uint32_t>(extensions.size());
     createInfo.ppEnabledExtensionNames = extensions.data();
 
@@ -115,7 +116,7 @@ void vk::Device::createInstance()
         throw std::runtime_error("failed to create instance!");
     }
 
-    hasGflwRequiredInstanceExtensions();
+    ensureRequiredInstanceExtensions();
 }
 
 void vk::Device::pickPhysicalDevice()
@@ -174,7 +175,7 @@ void vk::Device::createLogicalDevice()
     dynamicRenderingFeatures.dynamicRendering = VK_TRUE;
 
     VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT swapchainMaintenance1Features{};
-    swapchainMaintenance1Features.sType                 = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SWAPCHAIN_MAINTENANCE_1_FEATURES_EXT;
+    swapchainMaintenance1Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SWAPCHAIN_MAINTENANCE_1_FEATURES_EXT;
     swapchainMaintenance1Features.swapchainMaintenance1 = VK_TRUE;
     dynamicRenderingFeatures.pNext                      = &swapchainMaintenance1Features;
 
@@ -232,7 +233,7 @@ void vk::Device::createCommandPool()
 
 void vk::Device::createSurface()
 {
-    window.createWindowSurface(instance, &surface_);
+    surface_ = wsi.createSurface(instance);
 }
 
 bool vk::Device::isDeviceSuitable(VkPhysicalDevice device)
@@ -321,21 +322,15 @@ bool vk::Device::checkValidationLayerSupport()
 
 std::vector<const char*> vk::Device::getRequiredExtensions()
 {
-    uint32_t glfwExtensionCount = 0;
-    const char** glfwExtensions;
-    glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-    std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
-
+    auto extensions = wsi.getRequiredInstanceExtensions();
     if (enableValidationLayers)
     {
         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     }
-
     return extensions;
 }
 
-void vk::Device::hasGflwRequiredInstanceExtensions()
+void vk::Device::ensureRequiredInstanceExtensions()
 {
     uint32_t extensionCount = 0;
     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
@@ -357,7 +352,7 @@ void vk::Device::hasGflwRequiredInstanceExtensions()
         std::cout << "\t" << required << std::endl;
         if (available.find(required) == available.end())
         {
-            throw std::runtime_error("Missing required glfw extension");
+            throw std::runtime_error(std::string("Missing required WSI/Vulkan extension: ") + required);
         }
     }
 }

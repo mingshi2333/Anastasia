@@ -12,8 +12,8 @@ struct SimplePushConstantData
     alignas(16) glm::vec3 color;
 };
 
-Renderer::Renderer(ANAwindow& window, vk::Device& device)
-    : window{ window }
+Renderer::Renderer(ana::wsi::IWSI& wsi, vk::Device& device)
+    : wsi{ wsi }
     , device{ device }
 {
     recreateSwapChain();
@@ -39,11 +39,14 @@ void Renderer::freeCommandBuffers()
 
 void Renderer::recreateSwapChain()
 {
-    auto extent = window.getExtent();
+    auto extent = wsi.framebufferExtent();
     while (extent.width == 0 || extent.height == 0)
     {
-        extent = window.getExtent();
-        glfwWaitEvents();
+        if (!wsi.poll())
+        {
+            return;
+        }
+        extent = wsi.framebufferExtent();
     }
 
     vkDeviceWaitIdle(device.device());
@@ -64,6 +67,8 @@ void Renderer::recreateSwapChain()
             //TODO should set a callback to let app deal with this
         }
     }
+
+    framebufferResized = false;
 
     //not depend on image count
     // if (swapChain->imageCount() != commandBuffers.size())
@@ -123,9 +128,8 @@ void Renderer::endFrame()
         throw std::runtime_error("failed to record command buffer!");
     }
     auto result = swapChain->submitCommandBuffers(&commandBuffer, &currentImageIndex);
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || window.wasWindowResized())
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized)
     {
-        window.resetWindowResizedFlag();
         recreateSwapChain();
     }
     else if (result != VK_SUCCESS)
