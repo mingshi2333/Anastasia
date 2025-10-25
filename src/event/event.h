@@ -27,7 +27,7 @@ public:
     virtual ~Event() = default;
 
 private:
-    EventType m_type = EventType::UNDEFINED;
+    [[maybe_unused]] EventType m_type = EventType::UNDEFINED;
 };
 
 struct MouseButtonEvent : public Event

@@ -171,7 +171,7 @@ void Renderer::beginSwapChainRendererPass(VkCommandBuffer commandBuffer)
     colorAttachmentInfo.imageLayout      = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     colorAttachmentInfo.loadOp           = VK_ATTACHMENT_LOAD_OP_CLEAR;
     colorAttachmentInfo.storeOp          = VK_ATTACHMENT_STORE_OP_STORE;
-    colorAttachmentInfo.clearValue.color = { 0.01f, 0.01f, 0.01f, 1.0f };
+    colorAttachmentInfo.clearValue.color = { { 0.01f, 0.01f, 0.01f, 1.0f } };
 
     VkRenderingAttachmentInfo depthAttachmentInfo{};
     depthAttachmentInfo.sType                   = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;

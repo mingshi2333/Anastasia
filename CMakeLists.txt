@@ -59,6 +59,7 @@ add_subdirectory(src/math)
 add_subdirectory(src/camera)
 add_subdirectory(src/event)
 add_subdirectory(src/wsi)
+add_subdirectory(src/threads)
 
 # Add executable, using the collected source file list
 add_executable(Anastasia ${SOURCE_FILES})
@@ -73,6 +74,7 @@ target_include_directories(Anastasia PRIVATE
 
 target_link_libraries(Anastasia
     PRIVATE
+    ana-threads
     ana-common
     glfw
     Threads::Threads
@@ -85,11 +87,6 @@ target_link_libraries(Anastasia
     GPUOpen::VulkanMemoryAllocator
     backward
     dw
-)
-
-# Compile definitions
-target_compile_definitions(Anastasia PRIVATE
-    $<$<CONFIG:Release>:NDEBUG>
 )
 
 add_custom_command(

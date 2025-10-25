@@ -456,13 +456,14 @@ VkFormat vk::Device::findSupportedFormat(const std::vector<VkFormat>& candidates
     throw std::runtime_error("failed to find supported format!");
 }
 
-uint32_t vk::Device::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
+uint32_t vk::Device::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags requiredProperties)
 {
     VkPhysicalDeviceMemoryProperties memProperties;
     vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
     for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
     {
-        if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
+        if ((typeFilter & (1 << i)) &&
+            (memProperties.memoryTypes[i].propertyFlags & requiredProperties) == requiredProperties)
         {
             return i;
         }
@@ -471,7 +472,7 @@ uint32_t vk::Device::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags p
     throw std::runtime_error("failed to find suitable memory type!");
 }
 
-void vk::Device::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
+void vk::Device::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags requiredProperties,
                               VkBuffer& buffer, VkDeviceMemory& bufferMemory)
 {
     VkBufferCreateInfo bufferInfo{};
@@ -491,7 +492,7 @@ void vk::Device::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMem
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize  = memRequirements.size;
-    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
+    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, requiredProperties);
 
     if (vkAllocateMemory(device_, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS)
     {
@@ -569,7 +570,7 @@ void vk::Device::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t widt
     endSingleTimeCommands(commandBuffer);
 }
 
-void vk::Device::createImageWithInfo(const VkImageCreateInfo& imageInfo, VkMemoryPropertyFlags properties,
+void vk::Device::createImageWithInfo(const VkImageCreateInfo& imageInfo, VkMemoryPropertyFlags requiredProperties,
                                      VkImage& image, VkDeviceMemory& imageMemory)
 {
     if (vkCreateImage(device_, &imageInfo, nullptr, &image) != VK_SUCCESS)
@@ -583,7 +584,7 @@ void vk::Device::createImageWithInfo(const VkImageCreateInfo& imageInfo, VkMemor
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize  = memRequirements.size;
-    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
+    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, requiredProperties);
 
     if (vkAllocateMemory(device_, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS)
     {

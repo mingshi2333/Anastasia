@@ -95,10 +95,10 @@ public:
     VkResult acquireNextImage(uint32_t* imageIndex);
     VkResult submitCommandBuffers(const VkCommandBuffer* buffers, uint32_t* imageIndex);
 
-    bool compareSwapFormats(const SwapChain& swapChain) const
+    bool compareSwapFormats(const SwapChain& other) const
     {
-        return swapChain.swapChainDepthFormat == swapChainDepthFormat &&
-               swapChain.swapChainImageFormat == swapChainImageFormat;
+        return other.swapChainDepthFormat == swapChainDepthFormat &&
+               other.swapChainImageFormat == swapChainImageFormat;
     }
 
 private:

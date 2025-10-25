@@ -225,9 +225,9 @@ void SwapChain::createImageViews()
 
 void SwapChain::createDepthResources()
 {
-    VkFormat depthFormat       = findDepthFormat();
-    swapChainDepthFormat       = depthFormat;
-    VkExtent2D swapChainExtent = getSwapChainExtent();
+    VkFormat depthFormat = findDepthFormat();
+    swapChainDepthFormat = depthFormat;
+    VkExtent2D extent    = getSwapChainExtent();
 
     depthImages.resize(imageCount());
     depthImageMemorys.resize(imageCount());
@@ -238,8 +238,8 @@ void SwapChain::createDepthResources()
         VkImageCreateInfo imageInfo{};
         imageInfo.sType         = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
         imageInfo.imageType     = VK_IMAGE_TYPE_2D;
-        imageInfo.extent.width  = swapChainExtent.width;
-        imageInfo.extent.height = swapChainExtent.height;
+        imageInfo.extent.width  = extent.width;
+        imageInfo.extent.height = extent.height;
         imageInfo.extent.depth  = 1;
         imageInfo.mipLevels     = 1;
         imageInfo.arrayLayers   = 1;

@@ -98,6 +98,6 @@ private:
     bool isFrameStarted{ false };
     bool framebufferResized{ false };
 
-    VkDescriptorPool imguiPool = VK_NULL_HANDLE;
+    [[maybe_unused]] VkDescriptorPool imguiPool = VK_NULL_HANDLE;
 };
 } // namespace ana
